@@ -1,0 +1,41 @@
+{
+  "results": [
+    {
+      "name": "Homepage",
+      "passed": false
+    },
+    {
+      "name": "Registration",
+      "passed": true
+    },
+    {
+      "name": "Login",
+      "passed": false
+    },
+    {
+      "name": "Profile",
+      "passed": true
+    },
+    {
+      "name": "Boards",
+      "passed": true
+    },
+    {
+      "name": "Search",
+      "passed": true
+    },
+    {
+      "name": "Post Creation",
+      "passed": true
+    },
+    {
+      "name": "Admin Dashboard",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 2,
+    "total": 8
+  }
+}

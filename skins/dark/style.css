@@ -1,0 +1,182 @@
+/* Dark Skin Styles */
+.dark-skin {
+  --primary-color: #60A5FA;
+  --primary-hover: #3B82F6;
+  --secondary-color: #A78BFA;
+  --background-color: #111827;
+  --card-background: #1F2937;
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --border-color: #374151;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --radius: 8px;
+}
+
+.dark-skin .post-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.dark-skin .post-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+}
+
+.dark-skin .btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  color: white;
+}
+
+.dark-skin .btn-primary:hover {
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+  transform: scale(1.02);
+}
+
+.dark-skin .board-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
+}
+
+.dark-skin .post-content {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.dark-skin .comment-box {
+  background: var(--card-background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.dark-skin .tag {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.dark-skin .pagination {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dark-skin .pagination button {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.dark-skin .pagination button:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.dark-skin .pagination button.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-color: transparent;
+}
+
+/* Dark editor styles */
+.dark-skin .editor-container {
+  border-radius: var(--radius);
+  border: 2px solid var(--border-color);
+  background: var(--background-color);
+}
+
+.dark-skin .editor-toolbar {
+  background: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dark-skin .editor-toolbar button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.dark-skin .editor-toolbar button:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.dark-skin .editor-content {
+  min-height: 400px;
+  padding: 1.5rem;
+  color: var(--text-primary);
+}
+
+/* Glow effects */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(96, 165, 250, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.8);
+  }
+}
+
+.dark-skin .glow-effect {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Code block styling */
+.dark-skin pre {
+  background: #0F172A;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.dark-skin code {
+  background: #0F172A;
+  color: #60A5FA;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Scrollbar */
+.dark-skin ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-skin ::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+.dark-skin ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.dark-skin ::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
