@@ -44,13 +44,15 @@ export default function AdminPostsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        page: page.toString(),
+        all: 'true',
         limit: '20',
+        offset: ((page - 1) * 20).toString(),
         ...(statusFilter && { status: statusFilter }),
         ...(categoryFilter && { category: categoryFilter }),
         ...(searchQuery && { search: searchQuery }),
@@ -289,6 +291,30 @@ export default function AdminPostsPage() {
     setPage(1);
   };
 
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // 해제
+      setSelectedPosts([]);
+    } else {
+      // 전체 선택 - 현재 페이지의 게시글만 선택
+      setSelectedPosts(posts.map(p => p.id));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleSelectIndividual = (postId: number) => {
+    setSelectedPosts(prev => {
+      const newSelected = prev.includes(postId)
+        ? prev.filter(id => id !== postId)
+        : [...prev, postId];
+
+      // selectAll 상태 업데이트: 모든 게시글이 선택되면 true, 아니면 false
+      setSelectAll(newSelected.length === posts.length && posts.length > 0);
+
+      return newSelected;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -411,20 +437,6 @@ export default function AdminPostsPage() {
                     총 {posts.length}개 게시글
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openModal()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                  >
-                    필터 추가
-                  </button>
-                  <button
-                    onClick={handleSearch}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    검색
-                  </button>
-                </div>
               </div>
 
               {/* Table */}
@@ -434,12 +446,10 @@ export default function AdminPostsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <input
                         type="checkbox"
-                        disabled
-                        className="w-4 h-4 rounded border-gray-300"
+                        checked={selectAll && posts.length > 0 && selectedPosts.length === posts.length}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                       />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      제목
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       제목
@@ -459,8 +469,8 @@ export default function AdminPostsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       통계
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      작업
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      관리
                     </th>
                   </tr>
                 </thead>
@@ -471,14 +481,8 @@ export default function AdminPostsPage() {
                         <input
                           type="checkbox"
                           checked={selectedPosts.includes(post.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedPosts([...selectedPosts, post.id]);
-                            } else {
-                              setSelectedPosts(selectedPosts.filter(id => id !== post.id));
-                            }
-                          }}
-                          className="w-4 h-4 rounded border-gray-300"
+                          onChange={() => handleSelectIndividual(post.id)}
+                          className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                         />
                       </td>
                       <td className="px-6 py-4">
@@ -554,64 +558,78 @@ export default function AdminPostsPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="relative group">
-                          <button
-                            onClick={() => openModal(post)}
-                            className="text-gray-600 hover:text-blue-600"
-                          >
-                            상태 변경
-                          </button>
-                          <div className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 z-10">
-                            <div className="py-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleStatus(post.id, 1);
-                                }}
-                                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
-                                disabled={post.status === 1}
-                              >
-                                {post.status === 1 && <span className="text-green-600">✓</span>}
-                                게시글 활성
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleStatus(post.id, 2);
-                                }}
-                                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
-                                disabled={post.status === 2}
-                              >
-                                {post.status === 2 && <span className="text-purple-600">✓</span>}
-                                게시글 숨김
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleStatus(post.id, 0);
-                                }}
-                                className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
-                                disabled={post.status === 0}
-                              >
-                                비활성
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex gap-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-2">
                           <Link
                             href={`/board/${post.boardKey}/${post.id}`}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 border border-blue-200"
+                            title="게시글 보기"
                           >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                             보기
                           </Link>
+                          <div className="relative group">
+                            <button
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-md hover:bg-gray-50 border border-gray-300"
+                              title="게시글 상태 변경"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              상태
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            <div className="absolute left-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-10">
+                              <div className="py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleStatus(post.id, 1);
+                                  }}
+                                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
+                                  disabled={post.status === 1}
+                                >
+                                  {post.status === 1 && <span className="text-green-600">✓</span>}
+                                  활성
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleStatus(post.id, 2);
+                                  }}
+                                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
+                                  disabled={post.status === 2}
+                                >
+                                  {post.status === 2 && <span className="text-blue-600">✓</span>}
+                                  숨김
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleStatus(post.id, 0);
+                                  }}
+                                  className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50"
+                                  disabled={post.status === 0}
+                                >
+                                  {post.status === 0 && <span className="text-gray-600">✓</span>}
+                                  삭제
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                           <button
                             onClick={() => openModal(post)}
-                            className="text-gray-600 hover:text-blue-600"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-md hover:bg-gray-50 border border-gray-300"
+                            title="다른 게시판으로 이동"
                           >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
                             이동
                           </button>
                           <button
@@ -620,8 +638,12 @@ export default function AdminPostsPage() {
                                 handleDelete(post.id);
                               }
                             }}
-                            className="text-red-600 hover:text-red-900"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 border border-red-700 shadow-sm hover:shadow"
+                            title="게시글 삭제"
                           >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                             삭제
                           </button>
                         </div>

@@ -201,7 +201,7 @@ export default function AdminMembersPage() {
                       번호
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      이름
+                      아이디
                     </th>
                     <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       닉네임
@@ -224,20 +224,18 @@ export default function AdminMembersPage() {
                   {members.map((member) => (
                     <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 text-center">{member.id}</td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">{member.username}</div>
-                        <div className="text-sm text-gray-500">{member.nickname}</div>
-                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-medium">{member.username}</td>
+                      <td className="px-6 py-4 text-gray-900">{member.nickname}</td>
                       <td className="px-6 py-4 text-gray-900">{member.email}</td>
                       <td className="px-6 py-4 text-center">
-                        {member.role === 0 && <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">일반</span>}
-                        {member.role === 1 && <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">회원</span>}
-                        {member.role === 2 && <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">관리자</span>}
+                        {member.role === 0 && <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">일반회원</span>}
+                        {member.role === 1 && <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">우수회원</span>}
+                        {member.role === 2 && <span className="px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-700">관리자</span>}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {member.status === 0 && <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">활성</span>}
-                        {member.status === 1 && <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">정지</span>}
-                        {member.status === 2 && <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">삭제</span>}
+                        {member.status === 1 && <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">활성</span>}
+                        {member.status === 2 && <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">정지</span>}
+                        {member.status === 0 && <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">삭제</span>}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(member.createdAt).toLocaleDateString('ko-KR')}

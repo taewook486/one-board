@@ -4,7 +4,9 @@ import {
   findPostsByBoard,
   searchPosts,
   getRecentPosts,
+  countPosts,
 } from '@/lib/db/posts';
+import { PostStatus } from '@/lib/db/schema';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
@@ -75,6 +77,50 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Handle admin all posts
+    if (searchParams.has('all')) {
+      // Admin authorization check
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('session');
+
+      if (!sessionCookie) {
+        return NextResponse.json(
+          { error: '로그인이 필요합니다.' },
+          { status: 401 }
+        );
+      }
+
+      const sessionUser = JSON.parse(sessionCookie.value);
+      if (sessionUser.role < 2) { // 2 = Admin role
+        return NextResponse.json(
+          { error: '관리자 권한이 필요합니다.' },
+          { status: 403 }
+        );
+      }
+
+      const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+      const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'));
+      const status = searchParams.get('status')
+        ? parseInt(searchParams.get('status')!)
+        : undefined;
+      const search = searchParams.get('search') || undefined;
+      const category = searchParams.get('category') || undefined;
+
+      const { getAllPosts } = await import('@/lib/db/posts');
+      const result = await getAllPosts({
+        limit,
+        offset,
+        status,
+        search,
+        category,
+      });
+
+      return NextResponse.json({
+        success: true,
+        ...result,
+      });
+    }
+
     // Handle board posts
     const boardId = searchParams.get('boardId');
     if (!boardId) {
@@ -106,9 +152,18 @@ export async function GET(request: NextRequest) {
       memberId,
     });
 
+    // Get total count for pagination
+    const { countPosts } = await import('@/lib/db/posts');
+    const total = await countPosts({
+      boardId: parseInt(boardId),
+      category,
+      status: PostStatus.ACTIVE
+    });
+
     return NextResponse.json({
       success: true,
       posts,
+      total,
       boardId: parseInt(boardId),
     });
   } catch (error) {
@@ -162,7 +217,7 @@ export async function POST(request: NextRequest) {
     const newPost = await createPost({
       ...validatedData,
       memberId: sessionUser.id,
-      authorName: null,
+      authorName: sessionUser.nickname || sessionUser.username,
       authorPassword: null,
     });
 

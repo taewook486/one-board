@@ -1,7 +1,13 @@
 import { eq, and, or, desc, asc, sql, count } from 'drizzle-orm';
 import { db } from './index';
-import { boardPosts, type BoardPost, type NewBoardPost, PostStatus } from './schema';
+import { boardPosts, type BoardPost, type NewBoardPost, PostStatus, boards } from './schema';
 import { z } from 'zod';
+
+// Type for posts with board information
+export type PostWithBoard = BoardPost & {
+  boardName: string;
+  boardKey: string;
+};
 
 // Import updatePostCount dynamically to avoid circular dependency
 async function getUpdatePostCount() {
@@ -549,5 +555,93 @@ export async function getPostStatistics(): Promise<{
     totalViews: result ? Number(result.totalViews) || 0 : 0,
     totalLikes: result ? Number(result.totalLikes) || 0 : 0,
     totalComments: result ? Number(result.totalComments) || 0 : 0,
+  };
+}
+
+/**
+ * Get all posts (for admin)
+ */
+export async function getAllPosts(options?: {
+  limit?: number;
+  offset?: number;
+  status?: number;
+  search?: string;
+  category?: string;
+}): Promise<{
+  posts: (BoardPost & { boardName: string; boardKey: string })[];
+  pagination: {
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  };
+}> {
+  const {
+    limit = 20,
+    offset = 0,
+    status,
+    search,
+    category,
+  } = options || {};
+
+  // Import boards table
+  const { boards } = await import('./schema');
+
+  // Build conditions
+  const conditions = [];
+
+  if (status !== undefined) {
+    conditions.push(eq(boardPosts.status, status));
+  }
+
+  if (category) {
+    conditions.push(eq(boardPosts.category, category));
+  }
+
+  if (search) {
+    // Escape SQL wildcard characters to prevent unintended matches
+    const escapedSearch = search
+      .replace(/%/g, '\\%')
+      .replace(/_/g, '\\_');
+    conditions.push(
+      or(
+        sql`${boardPosts.title} LIKE ${`%${escapedSearch}%`}`,
+        sql`${boardPosts.content} LIKE ${`%${escapedSearch}%`}`
+      )
+    );
+  }
+
+  // Count total posts
+  const [countResult] = await db
+    .select({ count: count() })
+    .from(boardPosts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+  const total = countResult ? Number(countResult.count) : 0;
+  const totalPages = Math.ceil(total / limit);
+  const page = Math.floor(offset / limit) + 1;
+
+  // Get posts with board info
+  const posts = await db
+    .select({
+      ...boardPosts,
+      boardName: boards.name,
+      boardKey: boards.boardKey,
+    })
+    .from(boardPosts)
+    .innerJoin(boards, eq(boardPosts.boardId, boards.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(boardPosts.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    posts: posts as PostWithBoard[],
+    pagination: {
+      total,
+      totalPages,
+      page,
+      limit,
+    },
   };
 }

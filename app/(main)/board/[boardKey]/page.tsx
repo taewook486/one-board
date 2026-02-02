@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { getBoardSkinWithStyles } from '@/lib/skin/skinLoader';
 import BoardSkinStyles from '@/components/BoardSkinStyles';
 import BoardStats from '@/components/board/BoardStats';
-import Pagination from '@/components/Pagination';
+import BoardPagination from '@/components/BoardPagination';
 
 interface BoardListPageProps {
   params: Promise<{
@@ -77,6 +77,23 @@ export default async function BoardListPage({
 
   const posts = postsData.posts || [];
 
+  // Fetch stats for visitor count
+  let todayVisitors = 0;
+  try {
+    const statsResponse = await fetch(
+      `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/stats?type=basic`,
+      {
+        cache: 'no-store',
+      }
+    );
+    const statsData = await statsResponse.json();
+    if (statsData.success && statsData.stats) {
+      todayVisitors = statsData.stats.todayVisitors || 0;
+    }
+  } catch (error) {
+    console.error('Failed to fetch stats:', error);
+  }
+
   return (
     <BoardSkinStyles skinConfig={skinResult.skinConfig} scopePrefix={skinResult.scopePrefix}>
       <div data-board-skin-scope className="min-h-screen bg-gray-50 py-8">
@@ -96,7 +113,7 @@ export default async function BoardListPage({
             totalMembers={postsData.total || posts.length}
             totalBoards={boardsData.boards?.length || 0}
             totalPosts={postsData.total || posts.length}
-            todayVisitors={Math.floor(Math.random() * 100) + 1000}
+            todayVisitors={todayVisitors}
           />
 
           {/* Board Actions */}
@@ -214,16 +231,9 @@ export default async function BoardListPage({
 
           {/* Advanced Pagination */}
           <div className="mt-6">
-            <Pagination
+            <BoardPagination
               currentPage={pageNum}
               totalPages={Math.ceil((postsData.total || posts.length) / 20)}
-              onPageChange={(newPage) => {
-                const urlParams = new URLSearchParams();
-                urlParams.set('page', newPage.toString());
-                if (sort) urlParams.set('sort', sort);
-                if (category) urlParams.set('category', category);
-                window.location.href = `/board/${boardKey}?${urlParams.toString()}`;
-              }}
             />
           </div>
         </div>

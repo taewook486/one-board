@@ -15,10 +15,12 @@ const DEFAULT_CONFIGS = {
 export async function GET(request: NextRequest) {
   try {
     const configs = await getAllConfigs();
-    
-    // Parse values based on type
+
+    // Parse values based on type and transform field names
     const parsedConfigs = configs.map(config => ({
-      ...config,
+      key: config.configKey,
+      value: config.configValue || '',
+      type: config.configType,
       parsedValue: parseConfigValue(config.configValue || '', config.configType),
     }));
 

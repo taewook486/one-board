@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import Image from 'next/image';
 
 interface Member {
   id: number;
@@ -210,12 +209,10 @@ export default function ProfilePage() {
                   <div className="flex items-center space-x-4">
                     <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden relative">
                       {member.profileImage ? (
-                        <Image
+                        <img
                           src={member.profileImage}
                           alt={member.nickname}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-3xl">👤</span>

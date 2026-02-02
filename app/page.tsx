@@ -162,7 +162,7 @@ export default function HomePage() {
                       Explore Posts
                     </Link>
                     <Link
-                      href="/write"
+                      href="/write?board=free"
                       className="group inline-flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl font-semibold shadow-lg hover:bg-primary-400 hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 border-white/30"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -548,7 +548,7 @@ export default function HomePage() {
                 {sessionUser ? (
                   <>
                     <li>
-                      <Link href="/write" className="hover:text-primary-600 transition-colors">
+                      <Link href="/write?board=free" className="hover:text-primary-600 transition-colors">
                         Write a Post
                       </Link>
                     </li>

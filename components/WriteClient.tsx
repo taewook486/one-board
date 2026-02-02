@@ -32,6 +32,7 @@ export default function WriteClient() {
   const [board, setBoard] = useState<any>(null);
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [boards, setBoards] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -57,12 +58,16 @@ export default function WriteClient() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        if (boardKey) {
-          const res = await fetch('/api/boards');
-          const data = await res.json();
+        // Fetch all boards
+        const res = await fetch('/api/boards');
+        const data = await res.json();
 
-          if (data.success) {
-            const foundBoard = data.boards?.find((b: any) => b.boardKey === boardKey);
+        if (data.success) {
+          const allBoards = data.boards || [];
+          setBoards(allBoards);
+
+          if (boardKey) {
+            const foundBoard = allBoards.find((b: any) => b.boardKey === boardKey);
             if (foundBoard) {
               setBoard(foundBoard);
             } else {
@@ -73,18 +78,18 @@ export default function WriteClient() {
 
         if (postId) {
           setIsEdit(true);
-          const res = await fetch(`/api/posts/${postId}`);
-          const data = await res.json();
+          const postRes = await fetch(`/api/posts/${postId}`);
+          const postData = await postRes.json();
 
-          if (data.success) {
-            setPost(data.post);
-            setValue('title', data.post.title);
-            setValue('content', data.post.content);
-            setValue('category', data.post.category || '');
-            setValue('tags', data.post.tags || '');
-            setValue('isNotice', data.post.isNotice);
-            setValue('isPinned', data.post.isPinned);
-            setValue('isSecret', data.post.isSecret);
+          if (postData.success) {
+            setPost(postData.post);
+            setValue('title', postData.post.title);
+            setValue('content', postData.post.content);
+            setValue('category', postData.post.category || '');
+            setValue('tags', postData.post.tags || '');
+            setValue('isNotice', postData.post.isNotice);
+            setValue('isPinned', postData.post.isPinned);
+            setValue('isSecret', postData.post.isSecret);
           }
         }
       } catch (error) {
@@ -156,6 +161,53 @@ export default function WriteClient() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show board selection if no board is specified
+  if (!boardKey && boards.length > 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">게시판 선택</h1>
+            <p className="text-gray-600 mb-6">게시글을 작성할 게시판을 선택해주세요.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {boards.map((b) => (
+                <Link
+                  key={b.id}
+                  href={`/write?board=${b.boardKey}`}
+                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                >
+                  <div className="text-2xl mb-2">{b.icon || '📋'}</div>
+                  <div className="font-semibold text-gray-900">{b.name}</div>
+                  {b.description && (
+                    <div className="text-sm text-gray-500 mt-1">{b.description}</div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no boards available
+  if (!boardKey && boards.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-lg p-8 text-center">
+            <div className="text-6xl mb-4">😕</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">게시판 없음</h1>
+            <p className="text-gray-600 mb-6">사용 가능한 게시판이 없습니다.</p>
+            <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
