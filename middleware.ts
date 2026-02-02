@@ -79,18 +79,18 @@ export async function middleware(request: NextRequest) {
 
   // For API routes that need authentication, check headers
   if (pathname.startsWith('/api/')) {
-    // Allow public access to specific API routes
+    // Auth APIs are always public (they handle their own auth)
+    if (pathname.startsWith('/api/auth/')) {
+      return NextResponse.next();
+    }
+
+    // Allow public access to posts/comments/boards GET requests
     if ((pathname.startsWith('/api/posts/') || pathname.startsWith('/api/comments/') || pathname.startsWith('/api/boards/')) &&
         request.method === 'GET') {
       return NextResponse.next();
     }
 
-    // Allow password reset APIs
-    if (pathname.startsWith('/api/auth/forgot-password') || pathname.startsWith('/api/auth/reset-password')) {
-      return NextResponse.next();
-    }
-
-    // API routes that don't need auth are already handled above
+    // API routes that need authentication
     if (!sessionCookie) {
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
