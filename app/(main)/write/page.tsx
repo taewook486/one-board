@@ -9,6 +9,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import Editor from '@/components/editor/Editor';
 
+export const dynamic = 'force-dynamic';
+
 // Validation schema
 const postSchema = z.object({
   title: z.string().min(1, '제목을 입력해주세요.')

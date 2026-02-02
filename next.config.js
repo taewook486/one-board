@@ -18,6 +18,12 @@ const nextConfig = {
     }
     return config;
   },
+  // Experimental: disable static optimization for all routes
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '5mb',
+    },
+  },
 };
 
 module.exports = nextConfig;

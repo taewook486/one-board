@@ -7,6 +7,8 @@ import { formatRelativeTime } from '@/lib/utils/common';
 import toast from 'react-hot-toast';
 import { useSkin } from '@/components/SkinProvider';
 
+export const dynamic = 'force-dynamic';
+
 interface Board {
   id: number;
   name: string;
