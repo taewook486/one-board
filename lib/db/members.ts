@@ -1,6 +1,6 @@
 import { eq, and, or, desc, count } from 'drizzle-orm';
 import { db } from './index';
-import { members, type Member, type NewMember } from './index';
+import { members, type Member, type NewMember } from './schema';
 import { hashPassword, verifyPassword } from '../utils/security';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
