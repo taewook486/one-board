@@ -1,5 +1,5 @@
 import { db } from './index';
-import { systemConfig, type SystemConfig } from './schema';
+import { systemConfig, type SystemConfig } from './index';
 import { eq, and } from 'drizzle-orm';
 
 /**

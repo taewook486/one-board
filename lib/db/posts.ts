@@ -1,6 +1,6 @@
 import { eq, and, or, desc, asc, sql, count } from 'drizzle-orm';
 import { db } from './index';
-import { boardPosts, type BoardPost, type NewBoardPost, PostStatus, boards } from './schema';
+import { boardPosts, type BoardPost, type NewBoardPost, PostStatus, boards } from './index';
 import { z } from 'zod';
 
 // Type for posts with board information

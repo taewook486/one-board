@@ -1,6 +1,6 @@
 import { eq, and, desc, count, asc, sql } from 'drizzle-orm';
 import { db } from './index';
-import { postFiles, type PostFile, type NewPostFile } from './schema';
+import { postFiles, type PostFile, type NewPostFile } from './index';
 import { z } from 'zod';
 import path from 'path';
 import fs from 'fs';

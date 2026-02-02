@@ -1,5 +1,5 @@
 import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
-import { members } from './schema';
+import { members } from './index';
 
 export const notifications = sqliteTable('notifications', {
   id: integer('id').primaryKey(),

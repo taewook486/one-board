@@ -1,6 +1,6 @@
 import { eq, and, desc, asc } from 'drizzle-orm';
 import { db } from './index';
-import { boards, type Board, type NewBoard, Permission } from './schema';
+import { boards, type Board, type NewBoard, Permission } from './index';
 import { z } from 'zod';
 
 // Validation schemas

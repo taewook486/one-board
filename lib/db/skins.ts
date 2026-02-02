@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from './index';
-import { skins, type Skin, type NewSkin } from './schema';
+import { skins, type Skin, type NewSkin } from './index';
 import { z } from 'zod';
 
 // Validation schemas

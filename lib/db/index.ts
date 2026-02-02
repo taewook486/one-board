@@ -59,4 +59,10 @@ if (isPostgres) {
 }
 
 export { db };
-export * from './schema-sqlite';
+
+// Export the correct schema based on environment
+if (isPostgres) {
+  export * from './schema-pg';
+} else {
+  export * from './schema-sqlite';
+}

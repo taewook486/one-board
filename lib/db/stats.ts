@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, sql, count, desc } from 'drizzle-orm';
 import { db } from './index';
-import { members, boardPosts, postComments, memberSessions, boards } from './schema';
+import { members, boardPosts, postComments, memberSessions, boards } from './index';
 
 /**
  * Statistics Types

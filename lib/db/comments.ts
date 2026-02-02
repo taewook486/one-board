@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, count, sql } from 'drizzle-orm';
 import { db } from './index';
-import { postComments, type PostComment, type NewPostComment, CommentStatus } from './schema';
+import { postComments, type PostComment, type NewPostComment, CommentStatus } from './index';
 import { z } from 'zod';
 
 // Validation schemas
