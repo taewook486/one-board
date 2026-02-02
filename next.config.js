@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+  // Disable static optimization for all routes
+  generateStaticParams: false,
   images: {
     remotePatterns: [
       {
@@ -17,12 +20,6 @@ const nextConfig = {
       });
     }
     return config;
-  },
-  // Experimental: disable static optimization for all routes
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '5mb',
-    },
   },
 };
 
