@@ -4,7 +4,7 @@ const db = new Database('./data/oneboard.db');
 
 // Check if column exists
 try {
-  const result = db.pragma("table_info(board_posts)");
+  const result = db.pragma("table_info(board_posts)") as any[];
   const hasColumn = result.some((col: any) => col.name === 'is_event');
 
   if (!hasColumn) {
