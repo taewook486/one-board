@@ -5,7 +5,14 @@
       "mcp__github__search_repositories",
       "mcp__github__get_file_contents",
       "mcp__web-reader__webReader",
-      "Bash(claude plugins add:*)"
+      "Bash(claude plugins add:*)",
+      "Bash(where:*)",
+      "Bash(claude plugin --help:*)",
+      "Bash(claude plugin install:*)",
+      "Bash(claude plugin marketplace --help:*)",
+      "Bash(claude plugin:*)",
+      "Bash(claude:*)",
+      "Bash(dir \"%USERPROFILE%\\\\.claude\\\\plugins\\\\knowledge-work-plugins\\\\product-management\")"
     ]
   }
 }

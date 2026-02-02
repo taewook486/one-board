@@ -15,7 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:init": "tsx scripts/init-db.ts"
+    "db:init": "tsx scripts/init-db.ts",
+    "db:init:pg": "tsx scripts/init-db-postgres.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -51,7 +52,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-v8": "^1.6.1",
     "autoprefixer": "^10.4.23",
-    "drizzle-kit": "^0.24.0",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "playwright": "^1.58.0",
