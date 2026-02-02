@@ -3,10 +3,12 @@ import { getConfig, deleteConfig } from '@/lib/db/config';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    const value = await getConfig(decodeURIComponent(params.key));
+    const { key } = await params;
+    const configKey = decodeURIComponent(key);
+    const value = await getConfig(configKey);
 
     if (value === null) {
       return NextResponse.json(
@@ -17,7 +19,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      key: params.key,
+      key: configKey,
       value,
     });
   } catch (error) {
@@ -31,10 +33,11 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    await deleteConfig(decodeURIComponent(params.key));
+    const { key } = await params;
+    await deleteConfig(decodeURIComponent(key));
 
     return NextResponse.json({
       success: true,

@@ -20,12 +20,13 @@ const updateCommentSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const commentId = parseInt(id);
 
-    const comment = await findCommentById(id);
+    const comment = await findCommentById(commentId);
 
     if (!comment) {
       return NextResponse.json(
@@ -53,10 +54,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const commentId = parseInt(id);
 
     // Get user from session
     const cookieStore = await cookies();
@@ -72,7 +74,7 @@ export async function PUT(
     const sessionUser = JSON.parse(sessionCookie.value);
 
     // Check if comment exists
-    const comment = await findCommentById(id);
+    const comment = await findCommentById(commentId);
     if (!comment) {
       return NextResponse.json(
         { error: '댓글을 찾을 수 없습니다.' },
@@ -81,7 +83,7 @@ export async function PUT(
     }
 
     // Check permission
-    const canEdit = await canEditComment(id, sessionUser.id);
+    const canEdit = await canEditComment(commentId, sessionUser.id);
     if (!canEdit) {
       return NextResponse.json(
         { error: '댓글을 수정할 권한이 없습니다.' },
@@ -95,7 +97,7 @@ export async function PUT(
     const validatedData = updateCommentSchema.parse(body);
 
     // Update comment
-    const updatedComment = await updateComment(id, validatedData);
+    const updatedComment = await updateComment(commentId, validatedData);
 
     return NextResponse.json({
       success: true,
@@ -131,10 +133,11 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const commentId = parseInt(id);
 
     // Get user from session
     const cookieStore = await cookies();
@@ -150,7 +153,7 @@ export async function DELETE(
     const sessionUser = JSON.parse(sessionCookie.value);
 
     // Check permission
-    const canDelete = await canDeleteComment(id, sessionUser.id);
+    const canDelete = await canDeleteComment(commentId, sessionUser.id);
     if (!canDelete) {
       return NextResponse.json(
         { error: '댓글을 삭제할 권한이 없습니다.' },
@@ -158,7 +161,7 @@ export async function DELETE(
       );
     }
 
-    await deleteComment(id);
+    await deleteComment(commentId);
 
     return NextResponse.json({
       success: true,
@@ -186,12 +189,13 @@ export async function DELETE(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const commentId = parseInt(id);
 
-    const comment = await findCommentById(id);
+    const comment = await findCommentById(commentId);
     if (!comment) {
       return NextResponse.json(
         { error: '댓글을 찾을 수 없습니다.' },
@@ -199,7 +203,7 @@ export async function POST(
       );
     }
 
-    await incrementCommentLikeCount(id);
+    await incrementCommentLikeCount(commentId);
 
     return NextResponse.json({
       success: true,

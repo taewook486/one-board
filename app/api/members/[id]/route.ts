@@ -9,10 +9,11 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const member = await findMemberById(parseInt(params.id));
+    const { id } = await params;
+    const member = await findMemberById(parseInt(id));
 
     if (!member) {
       return NextResponse.json(
@@ -36,11 +37,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const data = await request.json();
-    const memberId = parseInt(params.id);
+    const memberId = parseInt(id);
 
     // Handle special actions
     if (data.action === 'lock') {
@@ -81,10 +83,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const memberId = parseInt(params.id);
+    const { id } = await params;
+    const memberId = parseInt(id);
     await deleteMember(memberId);
 
     return NextResponse.json({

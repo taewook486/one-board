@@ -276,8 +276,8 @@ export async function getBoardCategories(): Promise<string[]> {
     .where(eq(boards.isActive, true));
 
   return result
-    .map((r) => r.category)
-    .filter((c): c is string => c !== null && c !== undefined);
+    .map((r: { category: string | null }) => r.category)
+    .filter((c: string | null | undefined): c is string => c !== null && c !== undefined);
 }
 
 /**

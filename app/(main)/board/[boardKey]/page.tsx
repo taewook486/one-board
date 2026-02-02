@@ -7,28 +7,29 @@ import BoardStats from '@/components/board/BoardStats';
 import Pagination from '@/components/Pagination';
 
 interface BoardListPageProps {
-  params: {
+  params: Promise<{
     boardKey: string;
-   };
-  searchParams: {
+   }>;
+  searchParams: Promise<{
     page?: string;
     sort?: string;
     category?: string;
-   };
+   }>;
 }
 
 export default async function BoardListPage({
   params,
   searchParams,
 }: BoardListPageProps) {
-  const page = parseInt(searchParams.page || '1');
+  const { boardKey } = await params;
+  const { page = '1', sort = 'createdAt', category } = await searchParams;
+
+  const pageNum = parseInt(page);
   const limit = 20;
-  const offset = (page - 1) * limit;
-  const sort = searchParams.sort || 'createdAt';
-  const category = searchParams.category;
+  const offset = (pageNum - 1) * limit;
 
   // Load skin configuration for this board
-  const skinResult = await getBoardSkinWithStyles(params.boardKey);
+  const skinResult = await getBoardSkinWithStyles(boardKey);
 
   // Check if user is logged in
   const cookieStore = await cookies();
@@ -45,7 +46,7 @@ export default async function BoardListPage({
   const boardsData = await boardsResponse.json();
 
   // Find the specific board by key
-  const board = boardsData.boards?.find((b: any) => b.boardKey === params.boardKey);
+  const board = boardsData.boards?.find((b: any) => b.boardKey === boardKey);
 
   if (!board) {
     return (
@@ -103,19 +104,19 @@ export default async function BoardListPage({
             {/* Sort */}
             <div className="flex gap-2">
               <Link
-                href={`/board/${params.boardKey}?sort=createdAt`}
+                href={`/board/${boardKey}?sort=createdAt`}
                 className={`px-3 py-1 rounded text-sm ${sort === 'createdAt' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 최신순
               </Link>
               <Link
-                href={`/board/${params.boardKey}?sort=viewCount`}
+                href={`/board/${boardKey}?sort=viewCount`}
                 className={`px-3 py-1 rounded text-sm ${sort === 'viewCount' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 조회순
               </Link>
               <Link
-                href={`/board/${params.boardKey}?sort=likeCount`}
+                href={`/board/${boardKey}?sort=likeCount`}
                 className={`px-3 py-1 rounded text-sm ${sort === 'likeCount' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
               >
                 추천순
@@ -126,7 +127,7 @@ export default async function BoardListPage({
             <div className="flex gap-2">
               {sessionUser && (
                 <Link
-                  href={`/write?board=${params.boardKey}`}
+                  href={`/write?board=${boardKey}`}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium"
                 >
                   글쓰기
@@ -183,7 +184,7 @@ export default async function BoardListPage({
                       </td>
                       <td className="px-6 py-4">
                         <Link
-                          href={`/board/${params.boardKey}/${post.id}`}
+                          href={`/board/${boardKey}/${post.id}`}
                           className="text-sm font-medium text-blue-600 hover:text-blue-900"
                         >
                           {post.title}
@@ -214,14 +215,14 @@ export default async function BoardListPage({
           {/* Advanced Pagination */}
           <div className="mt-6">
             <Pagination
-              currentPage={page}
+              currentPage={pageNum}
               totalPages={Math.ceil((postsData.total || posts.length) / 20)}
               onPageChange={(newPage) => {
                 const urlParams = new URLSearchParams();
                 urlParams.set('page', newPage.toString());
                 if (sort) urlParams.set('sort', sort);
                 if (category) urlParams.set('category', category);
-                window.location.href = `/board/${params.boardKey}?${urlParams.toString()}`;
+                window.location.href = `/board/${boardKey}?${urlParams.toString()}`;
               }}
             />
           </div>

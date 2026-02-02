@@ -24,11 +24,11 @@ const publicRoutes = [
   '/api/posts',           // 게시글 목록 (공개)
 ];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get session from cookie (used for both protected routes and API auth)
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('session');
 
   // Check if it's a public route

@@ -38,12 +38,13 @@ const regularUpdateSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
-    const post = await findPostById(id);
+    const post = await findPostById(postId);
     if (!post) {
       return NextResponse.json(
         { error: '게시글을 찾을 수 없습니다.' },
@@ -65,10 +66,10 @@ export async function GET(
     }
 
     // Increment view count
-    await incrementViewCount(id);
+    await incrementViewCount(postId);
 
     // Get adjacent posts
-    const adjacentPosts = await getAdjacentPosts(id, post.boardId);
+    const adjacentPosts = await getAdjacentPosts(postId, post.boardId);
 
     return NextResponse.json({
       success: true,
@@ -94,10 +95,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
     // Get user from session
     const cookieStore = await cookies();
@@ -113,7 +115,7 @@ export async function PUT(
     const sessionUser = JSON.parse(sessionCookie.value);
 
     // Check if post exists
-    const post = await findPostById(id);
+    const post = await findPostById(postId);
     if (!post) {
       return NextResponse.json(
         { error: '게시글을 찾을 수 없습니다.' },
@@ -135,7 +137,7 @@ export async function PUT(
     const validatedData = regularUpdateSchema.parse(body);
 
     // Update post
-    const updatedPost = await updatePost(id, validatedData);
+    const updatedPost = await updatePost(postId, validatedData);
 
     return NextResponse.json({
       success: true,
@@ -171,10 +173,11 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
     // Get user from session
     const cookieStore = await cookies();
@@ -190,7 +193,7 @@ export async function DELETE(
     const sessionUser = JSON.parse(sessionCookie.value);
 
     // Check if post exists
-    const post = await findPostById(id);
+    const post = await findPostById(postId);
     if (!post) {
       return NextResponse.json(
         { error: '게시글을 찾을 수 없습니다.' },
@@ -206,7 +209,7 @@ export async function DELETE(
       );
     }
 
-    await deletePost(id);
+    await deletePost(postId);
 
     return NextResponse.json({
       success: true,
@@ -234,10 +237,11 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
     
     // Get user from session
     const cookieStore = await cookies();
@@ -261,7 +265,7 @@ export async function PATCH(
     }
 
     // Check if post exists
-    const post = await findPostById(id);
+    const post = await findPostById(postId);
     if (!post) {
       return NextResponse.json(
         { error: '게시글을 찾을 수 없습니다.' },
@@ -281,7 +285,7 @@ export async function PATCH(
             isPinned: !post.isPinned,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(boardPosts.id, id))
+          .where(eq(boardPosts.id, postId))
           .returning();
         const updated = result[0];
         return NextResponse.json({
@@ -297,7 +301,7 @@ export async function PATCH(
             isSecret: !post.isSecret,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(boardPosts.id, id))
+          .where(eq(boardPosts.id, postId))
           .returning();
         const updatedSecret = resultSecret[0];
         return NextResponse.json({
@@ -313,7 +317,7 @@ export async function PATCH(
             isNotice: !post.isNotice,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(boardPosts.id, id))
+          .where(eq(boardPosts.id, postId))
           .returning();
         const updatedNotice = resultNotice[0];
         return NextResponse.json({
@@ -335,7 +339,7 @@ export async function PATCH(
             status,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(boardPosts.id, id))
+          .where(eq(boardPosts.id, postId))
           .returning();
         
         return NextResponse.json({
@@ -371,7 +375,7 @@ export async function PATCH(
             boardId: targetBoardId,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(boardPosts.id, id))
+          .where(eq(boardPosts.id, postId))
           .returning();
         
         return NextResponse.json({

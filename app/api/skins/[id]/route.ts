@@ -7,10 +7,11 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const skin = await findSkinById(parseInt(params.id));
+    const { id } = await params;
+    const skin = await findSkinById(parseInt(id));
 
     if (!skin) {
       return NextResponse.json(
@@ -34,11 +35,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const data = await request.json();
-    const skinId = parseInt(params.id);
+    const skinId = parseInt(id);
 
     const updatedSkin = await updateSkin(skinId, {
       name: data.name,
@@ -64,10 +66,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const skinId = parseInt(params.id);
+    const { id } = await params;
+    const skinId = parseInt(id);
     await deleteSkin(skinId);
 
     return NextResponse.json({

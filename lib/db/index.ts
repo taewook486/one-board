@@ -1,40 +1,62 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import * as schema from './schema';
-import path from 'path';
-import fs from 'fs';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import { drizzle as drizzleSqlite } from 'drizzle-orm/better-sqlite3';
 
-// Database path from environment variable or default
-const dbPath = process.env.DATABASE_URL || path.join(process.cwd(), 'data', 'oneboard.db');
+// Check if using Postgres (production) or SQLite (development)
+const DATABASE_URL = process.env.DATABASE_URL;
+const POSTGRES_URL = process.env.POSTGRES_URL;
+const isPostgres = POSTGRES_URL || DATABASE_URL?.startsWith('postgres');
 
-// Ensure data directory exists
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// Import appropriate schema
+let schema: any;
+if (isPostgres) {
+  schema = require('./schema-pg');
+} else {
+  schema = require('./schema-sqlite');
 }
 
-// Create SQLite database connection
-const sqlite = new Database(dbPath);
+// Create database connection
+let db: any;
 
-// Enable foreign keys
-sqlite.pragma('foreign_keys = ON');
+if (isPostgres) {
+  // Production: Use Neon Postgres
+  const sql = neon(POSTGRES_URL || DATABASE_URL!);
 
-// Enable WAL mode for better performance
-sqlite.pragma('journal_mode = WAL');
+  // Configure Neon for better performance
+  neonConfig.fetchConnectionCache = true;
 
-// Set synchronous mode to NORMAL (balance between safety and performance)
-sqlite.pragma('synchronous = NORMAL');
+  db = drizzleNeon(sql, { schema });
+} else {
+  // Development: Use SQLite
+  const Database = require('better-sqlite3');
+  const path = require('path');
+  const fs = require('fs');
 
-// Set cache size to 64MB (negative value means KB)
-sqlite.pragma('cache_size = -64000');
+  const dbPath = DATABASE_URL || path.join(process.cwd(), 'data', 'oneboard.db');
 
-// Create Drizzle instance
-export const db = drizzle(sqlite, { schema });
+  // Ensure data directory exists
+  const dataDir = path.dirname(dbPath);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
 
-// Close database connection (useful for cleanup)
-export function closeDb() {
-  sqlite.close();
+  // Create SQLite database connection
+  const sqlite = new Database(dbPath);
+
+  // Enable foreign keys
+  sqlite.pragma('foreign_keys = ON');
+
+  // Enable WAL mode for better performance
+  sqlite.pragma('journal_mode = WAL');
+
+  // Set synchronous mode to NORMAL
+  sqlite.pragma('synchronous = NORMAL');
+
+  // Set cache size to 64MB
+  sqlite.pragma('cache_size = -64000');
+
+  db = drizzleSqlite(sqlite, { schema });
 }
 
-// Export schema for use in other files
-export * from './schema';
+export { db };
+export * from './schema-sqlite';

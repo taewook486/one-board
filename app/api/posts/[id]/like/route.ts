@@ -3,9 +3,10 @@ import { incrementLikeCount } from '@/lib/db/posts';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const headers = request.headers;
     const userId = headers.get('x-user-id');
     
@@ -17,7 +18,7 @@ export async function POST(
     }
 
     // Increment like count
-    await incrementLikeCount(parseInt(params.id));
+    await incrementLikeCount(parseInt(id));
 
     return NextResponse.json({
       success: true,

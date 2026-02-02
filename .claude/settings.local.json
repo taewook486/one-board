@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__web-search-prime__webSearchPrime",
+      "mcp__github__search_repositories",
+      "mcp__github__get_file_contents",
+      "mcp__web-reader__webReader",
+      "Bash(claude plugins add:*)"
+    ]
+  }
+}

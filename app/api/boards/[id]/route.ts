@@ -27,12 +27,13 @@ const updateBoardSchema = z.object({
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const boardId = parseInt(id);
 
-    const board = await findBoardById(id);
+    const board = await findBoardById(boardId);
 
     if (!board) {
       return NextResponse.json(
@@ -60,10 +61,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const boardId = parseInt(id);
 
     // Get user role from session
     const cookieStore = await cookies();
@@ -92,7 +94,7 @@ export async function PUT(
     const validatedData = updateBoardSchema.parse(body);
 
     // Update board
-    const updatedBoard = await updateBoard(id, validatedData);
+    const updatedBoard = await updateBoard(boardId, validatedData);
 
     return NextResponse.json({
       success: true,
@@ -128,10 +130,11 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const boardId = parseInt(id);
 
     // Get user role from session
     const cookieStore = await cookies();
@@ -154,7 +157,7 @@ export async function DELETE(
       );
     }
 
-    await deleteBoard(id);
+    await deleteBoard(boardId);
 
     return NextResponse.json({
       success: true,

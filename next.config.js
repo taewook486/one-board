@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  // Disable static optimization for all routes
-  generateStaticParams: false,
+  // Force webpack instead of Turbopack
+  // Turbopack in Next.js 16 has worker issues with some configurations
   images: {
     remotePatterns: [
       {

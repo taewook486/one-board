@@ -5,12 +5,13 @@ import { eq } from 'drizzle-orm';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await params;
+    const notificationId = parseInt(id);
 
-    if (isNaN(id)) {
+    if (isNaN(notificationId)) {
       return NextResponse.json(
         { error: '유효하지 않은 알림 ID입니다.' },
         { status: 400 }
@@ -21,7 +22,7 @@ export async function PUT(
     await db
       .update(notifications)
       .set({ isRead: true })
-      .where(eq(notifications.id, id));
+      .where(eq(notifications.id, notificationId));
 
     return NextResponse.json({
       success: true,
