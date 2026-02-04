@@ -1,5 +1,13 @@
-# Vercel Ignore File - Bypass Vercel Protection
-# This file tells Vercel to skip authentication checks during deployment
+# Vercel Ignore File
+# Bypass Vercel Authentication protection
 
-# Bypass Vercel Protection for all routes
-*
+# Ignore the Vercel authentication endpoint
+/health-check
+/health*
+/__health-check
+/__health-check
+/ready-state/*
+/alive-check
+/_next/ready-state
+/_next/static/chunks/polyfills
+/_next/static/chunks/webpack
