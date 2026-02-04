@@ -48,9 +48,14 @@ export default function Header() {
           if (data.authenticated && data.user) {
             setSessionUser(data.user);
           }
+        } else {
+          // Handle non-200 responses
+          console.warn('Session API returned non-success status:', res.status);
         }
       } catch (error) {
         console.error('Error loading session:', error);
+        // Set null on error to prevent UI issues
+        setSessionUser(null);
       }
     };
 

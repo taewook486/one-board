@@ -46,6 +46,9 @@ export default function HomePage() {
           if (data.authenticated && data.user) {
             setSessionUser(data.user);
           }
+        } else {
+          console.warn('Session API returned non-success status:', sessionRes.status);
+          setSessionUser(null);
         }
 
         // Fetch boards first to create mapping
@@ -70,6 +73,9 @@ export default function HomePage() {
             return { ...post, boardKey: board?.board_key };
           });
           setPopularPosts(posts);
+        } else {
+          console.error('Error fetching popular posts:', popularRes.status);
+          setPopularPosts([]);
         }
 
         if (latestRes.ok) {
@@ -79,6 +85,9 @@ export default function HomePage() {
             return { ...post, boardKey: board?.board_key };
           });
           setLatestPosts(posts);
+        } else {
+          console.error('Error fetching latest posts:', latestRes.status);
+          setLatestPosts([]);
         }
 
         // Find notice board and fetch announcements
@@ -92,10 +101,19 @@ export default function HomePage() {
               boardKey: 'notice'
             }));
             setAnnouncements(posts);
+          } else {
+            console.warn('Notice API returned non-success status:', noticeRes.status);
           }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+        // Set default/empty states on error to prevent UI crashes
+        setSessionUser(null);
+        setBoards([]);
+        setPopularPosts([]);
+        setLatestPosts([]);
+        setAnnouncements([]);
       } finally {
         setLoading(false);
       }
