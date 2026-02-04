@@ -217,9 +217,36 @@
 - 로딩 상태 개선 (스켈레톤 UI 등)
 - Next.js Image 컴포넌트의 `width`, `height` prop 사용하여 `fill` 대체
 
+#### 19. 배포 환경에서 로그인 405 에러
+- **문제**: Vercel 배포 시 로그인 API가 405 (Method Not Allowed) 에러 반환
+- **원인**:
+  - middleware에서 `/api/auth/` 경로가 적절히 처리되지 않음
+  - Production 환경에서 schema import 문제로 인해 모듈 로딩 실패
+- **수정**:
+  - `middleware.ts`: `/api/auth/`로 시작하는 모든 경로를 공개 경로로 처리
+  - `lib/db/index.ts`: 환경 변수에 따라 내부적으로 올바른 schema 사용 (Postgres in prod)
+  - `lib/db/members.ts`: `db` import를 `./index`에서 하도록 수정
+- **수정일**: 2026-02-02
+- **상태**: ✅ 완료
+
 ---
 
 ## 📝 수정한 파일 목록
+
+### 2026-02-02 (최종)
+- `app/admin/posts/page.tsx` - 전체 선택 체크박스 기능 구현
+- `app/profile/page.tsx` - 이미지 태그로 변경로 로딩 속도 개선
+- `middleware.ts` - API 인증 경로 처리 개선
+- `lib/db/index.ts` - 환경별 schema 자동 선택 로직 개선
+- `lib/db/members.ts` - db import 경로 수정
+
+---
+
+## 🔄 알려진 문제 (향후 작업 필요)
+
+**없음** - 모든 알려진 버그가 수정 완료되었습니다.
+
+
 
 ### 프론트엔드
 - `app/admin/members/page.tsx` - 역할/상태 표시 수정, 상태 매핑 수정
