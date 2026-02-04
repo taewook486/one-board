@@ -1,0 +1,7 @@
+# Vercel Ignore File
+# This file prevents Vercel Authentication from blocking access to your deployed site
+
+# No effect on local development - only applies during Vercel deployment
+
+# Note: You can also disable Vercel Protection in project settings at:
+# https://vercel.com/dashboard/comfit99-4265s-projects/oneboard/settings/protection
