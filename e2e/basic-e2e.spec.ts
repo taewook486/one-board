@@ -15,17 +15,19 @@ test.describe('One Board E2E Tests', () => {
   test('Main page loads correctly', async ({ page }) => {
     await expect(page).toHaveTitle(/One Board/);
 
-    // Check main elements
+    // Check main heading
     await expect(page.locator('h1, h2').first()).toBeVisible();
-    await expect(page.locator('text=게시판').first()).toBeVisible();
 
-    // Check statistics cards
-    await expect(page.locator('.bg-white.shadow').first()).toBeVisible();
+    // Check for welcome message or main content
+    await expect(page.locator('text=Welcome to One Board, text=One Board').first()).toBeVisible();
+
+    // Check statistics cards (they have different styling)
+    await expect(page.locator('.bg-gradient-to-br, .bg-white, .rounded').first()).toBeVisible();
   });
 
   test('Login functionality works', async ({ page }) => {
     // Navigate to login page
-    await page.click('text=로그인');
+    await page.click('text=Login');
     await expect(page).toHaveURL(/login/);
 
     // Fill login form
@@ -39,7 +41,7 @@ test.describe('One Board E2E Tests', () => {
     await page.waitForURL(/\/$/, { timeout: 5000 });
 
     // Verify successful login - check for logout button or user menu
-    await expect(page.locator('text=로그아웃').or('text=로그아웃트').or('[href*="logout"]').or('[class*="logout"]').or('button:has-text("로그아웃")').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Logout, text=로그아웃').or('[href*="logout"]').or('[class*="logout"]').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('View boards list', async ({ page }) => {

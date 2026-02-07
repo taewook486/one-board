@@ -76,7 +76,7 @@ export default function PostDetailClient({ boardKey, postId }: PostDetailClientP
 
         // Fetch post details
         const postResponse = await fetch(
-          `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/posts/${postId}`,
+          `/api/posts/${postId}`,
           { cache: 'no-store' }
         );
         const postData = await postResponse.json();
@@ -93,7 +93,7 @@ export default function PostDetailClient({ boardKey, postId }: PostDetailClientP
 
         // Fetch comments
         const commentsResponse = await fetch(
-          `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/comments?postId=${postId}&tree=true`,
+          `/api/comments?postId=${postId}&tree=true`,
           { cache: 'no-store' }
         );
         const commentsData = await commentsResponse.json();
