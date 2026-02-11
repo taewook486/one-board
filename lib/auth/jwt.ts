@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 const secretKey = new TextEncoder().encode(JWT_SECRET);
@@ -12,29 +12,29 @@ export interface SessionUser {
   profileImage: string | null;
 }
 
-export interface JWTPayload {
+export interface JWTPayload extends JoseJWTPayload {
   id: number;
   username: string;
   nickname: string;
   email: string | null;
   role: number;
   profileImage: string | null;
-  iat?: number;
-  exp?: number;
 }
 
 /**
  * Create JWT token for session
  */
 export async function createSessionToken(user: SessionUser): Promise<string> {
-  const token = await new SignJWT({
+  const payload: JWTPayload = {
     id: user.id,
     username: user.username,
     nickname: user.nickname,
     email: user.email,
     role: user.role,
     profileImage: user.profileImage,
-  } as JWTPayload)
+  };
+
+  const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
