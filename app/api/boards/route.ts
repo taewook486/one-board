@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findAllBoards, createBoard, updateBoard, deleteBoard, getBoardCategories } from '@/lib/db/boards';
-import { cookies } from 'next/headers';
+import { requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema
@@ -54,26 +54,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get user role from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
-
     // Check if user is admin
-    if (sessionUser.role !== 2) {
-      return NextResponse.json(
-        { error: '관리자만 게시판을 생성할 수 있습니다.' },
-        { status: 403 }
-      );
-    }
+    await requireAdmin();
 
     const body = await request.json();
 
@@ -101,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: error.message === '관리자만 접근할 수 있습니다.' ? 403 : 400 }
       );
     }
 

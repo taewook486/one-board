@@ -6,6 +6,20 @@ import { validateFileType, validateFileSize, sanitizeFilename } from '@/lib/util
 import { config } from '@/lib/config';
 import type { NewPostFile } from '@/lib/db/schema';
 
+// Vercel Blob Storage (production)
+let put: any;
+let blobAvailable = false;
+
+if (process.env.BLOB_READ_WRITE_TOKEN) {
+  try {
+    const blob = require('@vercel/blob');
+    put = blob.put;
+    blobAvailable = true;
+  } catch (e) {
+    console.warn('Vercel Blob not available, using local filesystem');
+  }
+}
+
 export interface UploadResult {
   success: boolean;
   file?: NewPostFile;
@@ -58,32 +72,14 @@ export async function uploadFile(
     const randomString = Math.random().toString(36).substring(2, 15);
     const storedName = `${Date.now()}_${randomString}${extension}`;
 
-    // Create upload directory
-    const now = new Date();
-    const uploadDir = path.join(
-      process.cwd(),
-      config.upload.uploadPath,
-      isImage ? 'images' : 'files',
-      now.getFullYear().toString(),
-      (now.getMonth() + 1).toString(),
-      now.getDate().toString()
-    );
-
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    // File path
-    const filePath = path.join(uploadDir, storedName);
-    const relativePath = path.relative(process.cwd(), filePath);
-
-    // Save file
+    // Process image and get buffer
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    await fs.writeFile(filePath, buffer);
+    let buffer = Buffer.from(arrayBuffer);
 
     // Process image (resize if needed)
     let width: number | undefined;
     let height: number | undefined;
-    let thumbnailPath: string | undefined;
+    let thumbnailBuffer: Buffer | undefined;
 
     if (isImage) {
       const image = sharp(buffer);
@@ -94,37 +90,82 @@ export async function uploadFile(
 
       // Resize large images
       if (width && width > config.upload.imageMaxWidth) {
-        const resizedPath = path.join(uploadDir, `resized_${storedName}`);
-        await sharp(buffer)
+        buffer = await sharp(buffer)
           .resize(config.upload.imageMaxWidth, null, {
             withoutEnlargement: true,
             fit: 'inside',
           })
-          .toFile(resizedPath);
-
-        // Replace original with resized
-        await fs.unlink(filePath);
-        await fs.rename(resizedPath, filePath);
+          .toBuffer();
 
         // Update metadata
-        const resizedMetadata = await sharp(filePath).metadata();
+        const resizedMetadata = await sharp(buffer).metadata();
         width = resizedMetadata.width;
         height = resizedMetadata.height;
       }
 
       // Create thumbnail
       if (width && height) {
-        const thumbnailName = `thumb_${storedName}`;
-        const thumbnailFullPath = path.join(uploadDir, thumbnailName);
-        const thumbnailRelativePath = path.relative(process.cwd(), thumbnailFullPath);
-
-        await sharp(filePath)
+        thumbnailBuffer = await sharp(buffer)
           .resize(config.upload.thumbnailSize, config.upload.thumbnailSize, {
             fit: 'cover',
           })
-          .toFile(thumbnailFullPath);
+          .toBuffer();
+      }
+    }
 
-        thumbnailPath = thumbnailRelativePath;
+    let filePath: string;
+    let thumbnailPath: string | undefined;
+
+    if (blobAvailable && process.env.NODE_ENV === 'production') {
+      // Production: Use Vercel Blob Storage
+      const now = new Date();
+      const blobPath = `uploads/${isImage ? 'images' : 'files'}/${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}/${storedName}`;
+
+      // Upload main file
+      await put(blobPath, buffer, {
+        access: 'public',
+        contentType: mimeType,
+      });
+
+      filePath = blobPath;
+
+      // Upload thumbnail if exists
+      if (thumbnailBuffer) {
+        const thumbnailBlobPath = `uploads/${isImage ? 'images' : 'files'}/${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}/thumb_${storedName}`;
+        await put(thumbnailBlobPath, thumbnailBuffer, {
+          access: 'public',
+          contentType: mimeType,
+        });
+        thumbnailPath = thumbnailBlobPath;
+      }
+    } else {
+      // Development: Use local filesystem
+      const now = new Date();
+      const uploadDir = path.join(
+        process.cwd(),
+        config.upload.uploadPath,
+        isImage ? 'images' : 'files',
+        now.getFullYear().toString(),
+        (now.getMonth() + 1).toString(),
+        now.getDate().toString()
+      );
+
+      await fs.mkdir(uploadDir, { recursive: true });
+
+      const localFilePath = path.join(uploadDir, storedName);
+      const relativePath = path.relative(process.cwd(), localFilePath);
+
+      // Save file
+      await fs.writeFile(localFilePath, buffer);
+      filePath = relativePath.replace(/\\/g, '/');
+
+      // Save thumbnail if exists
+      if (thumbnailBuffer) {
+        const thumbnailName = `thumb_${storedName}`;
+        const thumbnailFullPath = path.join(uploadDir, thumbnailName);
+        const thumbnailRelativePath = path.relative(process.cwd(), thumbnailFullPath);
+        await fs.writeFile(thumbnailFullPath, thumbnailBuffer);
+        thumbnailPath = thumbnailRelativePath.replace(/\\/g, '/');
       }
     }
 
@@ -136,7 +177,7 @@ export async function uploadFile(
       fileType: isImage ? 'image' : 'file',
       originalName,
       storedName,
-      filePath: relativePath,
+      filePath,
       fileSize: file.size,
       mimeType,
       width,
@@ -148,7 +189,9 @@ export async function uploadFile(
     const newFile = await createFile(fileData);
 
     // Generate URL
-    const url = `/${relativePath.replace(/\\/g, '/')}`;
+    const url = blobAvailable && process.env.NODE_ENV === 'production'
+      ? filePath // Blob Storage returns the URL directly
+      : `/${filePath}`;
 
     return {
       success: true,
@@ -211,6 +254,31 @@ export async function deleteFile(fileId: number): Promise<boolean> {
 
     if (!file) {
       return false;
+    }
+
+    // Delete from Blob Storage or filesystem
+    if (blobAvailable && process.env.NODE_ENV === 'production' && file.filePath.startsWith('uploads/')) {
+      const { del } = require('@vercel/blob');
+      await del(file.filePath);
+      if (file.thumbnailPath) {
+        await del(file.thumbnailPath);
+      }
+    } else {
+      // Local filesystem
+      const fullPath = path.join(process.cwd(), file.filePath);
+      try {
+        await fs.unlink(fullPath);
+      } catch (e) {
+        console.warn('Failed to delete file from filesystem:', e);
+      }
+      if (file.thumbnailPath) {
+        const thumbnailFullPath = path.join(process.cwd(), file.thumbnailPath);
+        try {
+          await fs.unlink(thumbnailFullPath);
+        } catch (e) {
+          console.warn('Failed to delete thumbnail from filesystem:', e);
+        }
+      }
     }
 
     await deleteDbFile(fileId);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import { verifySessionToken } from '@/lib/auth/jwt';
 
 // Define protected routes and their required permissions
 const protectedRoutes = {
@@ -49,22 +50,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Helper function to verify session and get user
+  async function getSessionUser() {
+    if (!sessionCookie) return null;
+    return await verifySessionToken(sessionCookie.value);
+  }
+
   // Check if it's a protected route
   for (const [route, requiredRole] of Object.entries(protectedRoutes)) {
     if (pathname.startsWith(route)) {
-      if (!sessionCookie) {
-        // Redirect to login if not authenticated
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(loginUrl);
-      }
+      const sessionUser = await getSessionUser();
 
-      // Parse session data
-      let sessionUser: { id: number; role: number };
-      try {
-        sessionUser = JSON.parse(sessionCookie.value);
-      } catch {
-        // Invalid session, redirect to login
+      if (!sessionUser) {
+        // Redirect to login if not authenticated
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(loginUrl);
@@ -91,31 +89,25 @@ export async function middleware(request: NextRequest) {
     }
 
     // API routes that need authentication
-    if (!sessionCookie) {
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser) {
       return NextResponse.json(
         { error: '인증이 필요합니다.' },
         { status: 401 }
       );
     }
 
-    try {
-      const sessionUser = JSON.parse(sessionCookie.value);
-      // Add user info to request headers for API routes to use
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.set('x-user-id', sessionUser.id.toString());
-      requestHeaders.set('x-user-role', sessionUser.role.toString());
+    // Add user info to request headers for API routes to use
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', sessionUser.id.toString());
+    requestHeaders.set('x-user-role', sessionUser.role.toString());
 
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      });
-    } catch {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
-    }
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
   return NextResponse.next();

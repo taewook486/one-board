@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { verifySessionToken } from '@/lib/auth/jwt';
 
 export interface SessionUser {
   id: number;
@@ -23,12 +24,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Parse session data
-    let sessionUser: SessionUser;
-    try {
-      sessionUser = JSON.parse(sessionCookie.value);
-    } catch {
-      // Invalid session
+    // Verify JWT token
+    const sessionUser = await verifySessionToken(sessionCookie.value);
+
+    if (!sessionUser) {
+      // Invalid token - delete cookie
       cookieStore.delete('session');
       return NextResponse.json({
         authenticated: false,
