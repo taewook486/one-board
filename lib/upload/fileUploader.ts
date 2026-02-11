@@ -79,7 +79,7 @@ export async function uploadFile(
     // Process image (resize if needed)
     let width: number | undefined;
     let height: number | undefined;
-    let thumbnailBuffer: Buffer | undefined;
+    let thumbnailBuffer: Uint8Array | undefined;
 
     if (isImage) {
       const image = sharp(buffer);
@@ -90,12 +90,14 @@ export async function uploadFile(
 
       // Resize large images
       if (width && width > config.upload.imageMaxWidth) {
-        buffer = await sharp(buffer)
+        const resizedBuffer = await sharp(buffer)
           .resize(config.upload.imageMaxWidth, null, {
             withoutEnlargement: true,
             fit: 'inside',
           })
           .toBuffer();
+
+        buffer = Buffer.from(resizedBuffer);
 
         // Update metadata
         const resizedMetadata = await sharp(buffer).metadata();
@@ -105,11 +107,12 @@ export async function uploadFile(
 
       // Create thumbnail
       if (width && height) {
-        thumbnailBuffer = await sharp(buffer)
+        const thumbBuffer = await sharp(buffer)
           .resize(config.upload.thumbnailSize, config.upload.thumbnailSize, {
             fit: 'cover',
           })
           .toBuffer();
+        thumbnailBuffer = new Uint8Array(thumbBuffer);
       }
     }
 
