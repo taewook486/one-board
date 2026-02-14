@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findBoardById, updateBoard, deleteBoard, updateBoardOrder } from '@/lib/db/boards';
-import { cookies } from 'next/headers';
+import { requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema
@@ -67,26 +67,8 @@ export async function PUT(
     const { id } = await params;
     const boardId = parseInt(id);
 
-    // Get user role from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
-
-    // Check if user is admin
-    if (sessionUser.role !== 2) {
-      return NextResponse.json(
-        { error: '관리자만 게시판을 수정할 수 있습니다.' },
-        { status: 403 }
-      );
-    }
+    // Get authenticated admin user
+    const sessionUser = await requireAdmin();
 
     const body = await request.json();
 
@@ -136,26 +118,8 @@ export async function DELETE(
     const { id } = await params;
     const boardId = parseInt(id);
 
-    // Get user role from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '인증이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
-
-    // Check if user is admin
-    if (sessionUser.role !== 2) {
-      return NextResponse.json(
-        { error: '관리자만 게시판을 삭제할 수 있습니다.' },
-        { status: 403 }
-      );
-    }
+    // Get authenticated admin user
+    const sessionUser = await requireAdmin();
 
     await deleteBoard(boardId);
 

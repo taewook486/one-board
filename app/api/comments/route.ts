@@ -6,7 +6,7 @@ import {
   getCommentsByMember,
   getRecentComments,
 } from '@/lib/db/comments';
-import { cookies } from 'next/headers';
+import { requireAuth } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema
@@ -96,18 +96,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     const body = await request.json();
 

@@ -7,7 +7,7 @@ import {
   countPosts,
 } from '@/lib/db/posts';
 import { PostStatus } from '@/lib/db/schema';
-import { cookies } from 'next/headers';
+import { requireAuth, requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema
@@ -80,23 +80,7 @@ export async function GET(request: NextRequest) {
     // Handle admin all posts
     if (searchParams.has('all')) {
       // Admin authorization check
-      const cookieStore = await cookies();
-      const sessionCookie = cookieStore.get('session');
-
-      if (!sessionCookie) {
-        return NextResponse.json(
-          { error: '로그인이 필요합니다.' },
-          { status: 401 }
-        );
-      }
-
-      const sessionUser = JSON.parse(sessionCookie.value);
-      if (sessionUser.role < 2) { // 2 = Admin role
-        return NextResponse.json(
-          { error: '관리자 권한이 필요합니다.' },
-          { status: 403 }
-        );
-      }
+      const sessionUser = await requireAdmin();
 
       const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
       const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'));
@@ -188,25 +172,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
-
-    if (sessionUser.role < 1) {
-      return NextResponse.json(
-        { error: '게시글을 작성할 권한이 없습니다.' },
-        { status: 403 }
-      );
-    }
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     const body = await request.json();
 
@@ -237,9 +204,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof Error) {
+      const statusCode = error.message === '인증이 필요합니다.' ? 401 : 400;
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: statusCode }
       );
     }
 

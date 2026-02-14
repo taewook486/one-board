@@ -10,7 +10,7 @@ import {
 import { db } from '@/lib/db';
 import { boardPosts, boards } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
-import { cookies } from 'next/headers';
+import { getAuthenticatedUser, requireAuth, requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema for admin actions only
@@ -53,10 +53,7 @@ export async function GET(
     }
 
     // Check if user can access the post (for secret posts)
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    const sessionUser = sessionCookie ? JSON.parse(sessionCookie.value) : null;
+    const sessionUser = await getAuthenticatedUser();
 
     if (post.isSecret && !canAccessPost(post.id, sessionUser?.id)) {
       return NextResponse.json(
@@ -101,18 +98,8 @@ export async function PUT(
     const { id } = await params;
     const postId = parseInt(id);
 
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     // Check if post exists
     const post = await findPostById(postId);
@@ -155,9 +142,10 @@ export async function PUT(
     }
 
     if (error instanceof Error) {
+      const statusCode = error.message === '인증이 필요합니다.' ? 401 : 400;
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: statusCode }
       );
     }
 
@@ -179,18 +167,8 @@ export async function DELETE(
     const { id } = await params;
     const postId = parseInt(id);
 
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     // Check if post exists
     const post = await findPostById(postId);
@@ -219,9 +197,10 @@ export async function DELETE(
     console.error('Delete post error:', error);
 
     if (error instanceof Error) {
+      const statusCode = error.message === '인증이 필요합니다.' ? 401 : 400;
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: statusCode }
       );
     }
 
@@ -242,27 +221,9 @@ export async function PATCH(
   try {
     const { id } = await params;
     const postId = parseInt(id);
-    
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-    
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
 
-    const sessionUser = JSON.parse(sessionCookie.value);
-    
-    // Check admin role
-    if (sessionUser.role !== 2) {
-      return NextResponse.json(
-        { error: '관리자 권한이 필요합니다.' },
-        { status: 403 }
-      );
-    }
+    // Get authenticated admin user
+    const sessionUser = await requireAdmin();
 
     // Check if post exists
     const post = await findPostById(postId);
@@ -341,7 +302,7 @@ export async function PATCH(
           })
           .where(eq(boardPosts.id, postId))
           .returning();
-        
+
         return NextResponse.json({
           success: true,
           post: updatedStatus[0],
@@ -361,14 +322,14 @@ export async function PATCH(
           .from(boards)
           .where(eq(boards.id, targetBoardId))
           .get();
-        
+
         if (!targetBoard) {
           return NextResponse.json(
             { error: '이동할 게시판을 찾을 수 없습니다.' },
             { status: 404 }
           );
         }
-        
+
         const updatedMove = await db
           .update(boardPosts)
           .set({
@@ -377,7 +338,7 @@ export async function PATCH(
           })
           .where(eq(boardPosts.id, postId))
           .returning();
-        
+
         return NextResponse.json({
           success: true,
           post: updatedMove[0],
@@ -392,7 +353,7 @@ export async function PATCH(
     }
   } catch (error) {
     console.error('Admin action error:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors[0]?.message || '입력값이 올바르지 않습니다.' },
@@ -401,9 +362,10 @@ export async function PATCH(
     }
 
     if (error instanceof Error) {
+      const statusCode = error.message === '관리자만 접근할 수 있습니다.' ? 403 : 400;
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }
+        { status: statusCode }
       );
     }
 

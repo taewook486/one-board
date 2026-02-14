@@ -7,7 +7,7 @@ import {
   canDeleteComment,
   canEditComment,
 } from '@/lib/db/comments';
-import { cookies } from 'next/headers';
+import { requireAuth } from '@/lib/auth/helper';
 import { z } from 'zod';
 
 // Validation schema
@@ -60,18 +60,8 @@ export async function PUT(
     const { id } = await params;
     const commentId = parseInt(id);
 
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     // Check if comment exists
     const comment = await findCommentById(commentId);
@@ -139,18 +129,8 @@ export async function DELETE(
     const { id } = await params;
     const commentId = parseInt(id);
 
-    // Get user from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: '로그인이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    const sessionUser = JSON.parse(sessionCookie.value);
+    // Get authenticated user
+    const sessionUser = await requireAuth();
 
     // Check permission
     const canDelete = await canDeleteComment(commentId, sessionUser.id);
