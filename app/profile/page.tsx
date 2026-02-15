@@ -35,11 +35,17 @@ export default function ProfilePage() {
 
   const fetchMember = useCallback(async () => {
     try {
+      console.log('[Profile] fetchMember called, setLoading(true)');
       setLoading(true);
+      console.log('[Profile] Fetching /api/auth/me...');
       const res = await fetch('/api/auth/me');
+      console.log('[Profile] Response status:', res.status);
+
       const data = await res.json();
+      console.log('[Profile] Response data:', data);
 
       if (data.authenticated && data.user) {
+        console.log('[Profile] User authenticated:', data.user);
         setMember({
           id: data.user.id,
           username: data.user.username,
@@ -57,17 +63,25 @@ export default function ProfilePage() {
           phone: '',
         });
       } else {
+        console.log('[Profile] Not authenticated, redirecting to login');
         toast.error(data.error || '회원 정보를 불러오는데 실패했습니다.');
-        router.push('/login');
+        window.location.href = '/login';
       }
     } catch (error) {
-      console.error('Error fetching member:', error);
+      console.error('[Profile] Error fetching member:', error);
       toast.error('회원 정보를 불러오는데 실패했습니다.');
-      router.push('/login');
+      window.location.href = '/login';
     } finally {
+      console.log('[Profile] Finally, setLoading(false)');
       setLoading(false);
     }
   }, [router]);
+
+  // Fetch member data on mount
+  useEffect(() => {
+    console.log('[Profile] useEffect called, calling fetchMember');
+    fetchMember();
+  }, [fetchMember]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();

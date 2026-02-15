@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { boardPosts } from '@/lib/db/schema';
-import { sql, eq, and } from 'drizzle-orm';
+import { sql, eq, or, and } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth/helper';
 
 /**
@@ -22,10 +22,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete all posts
-    await db
-      .delete(boardPosts)
-      .where(sql`id IN (${ids.map(id => String(id)).join(',')})`);
+    // Delete all posts using Drizzle ORM's or() operator
+    const conditions = ids.map(id => eq(boardPosts.id, id));
+    await db.delete(boardPosts).where(or(...conditions));
 
     return NextResponse.json({
       success: true,
