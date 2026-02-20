@@ -8,10 +8,10 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
+    include: ['**/*.test.ts', '../tests/**/*.test.ts'],
     exclude: [
       'node_modules/',
       'e2e/',
-      'tests/',
     ],
     coverage: {
       provider: 'v8',
@@ -27,10 +27,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
-      '@/lib': path.resolve(__dirname, './lib'),
-      '@/app': path.resolve(__dirname, './app'),
-      '@/components': path.resolve(__dirname, './components'),
+      '@': path.resolve(__dirname),
     },
   },
 });

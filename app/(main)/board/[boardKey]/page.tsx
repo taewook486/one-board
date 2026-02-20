@@ -5,6 +5,7 @@ import { getBoardSkinWithStyles } from '@/lib/skin/skinLoader';
 import BoardSkinStyles from '@/components/BoardSkinStyles';
 import BoardStats from '@/components/board/BoardStats';
 import BoardPagination from '@/components/BoardPagination';
+import { verifySessionToken } from '@/lib/auth/jwt';
 
 interface BoardListPageProps {
   params: Promise<{
@@ -34,7 +35,7 @@ export default async function BoardListPage({
   // Check if user is logged in
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get('session');
-  const sessionUser = sessionCookie ? JSON.parse(sessionCookie.value) : null;
+  const sessionUser = sessionCookie ? await verifySessionToken(sessionCookie.value) : null;
 
   // Fetch all boards
   const boardsResponse = await fetch(

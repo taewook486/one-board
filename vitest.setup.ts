@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 process.env.DATABASE_URL = ':memory:';
 process.env.NEXTAUTH_SECRET = 'test-secret-key-for-testing-only';
 process.env.NEXTAUTH_URL = 'http://localhost:3000';
+process.env.JWT_SECRET = 'test-secret-key-for-jwt-token-generation';
 
 // Mock fs/promises for testing
 vi.mock('fs/promises', () => ({
@@ -36,3 +37,21 @@ vi.mock('better-sqlite3', () => ({
     close: vi.fn(),
   })),
 }));
+
+// Mock Next.js headers API (cookies)
+const mockCookieSet = vi.fn();
+const mockCookieGet = vi.fn();
+const mockCookieDelete = vi.fn();
+
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => Promise.resolve({
+    set: mockCookieSet,
+    get: mockCookieGet,
+    delete: mockCookieDelete,
+  })),
+}));
+
+// Export mock functions for test access
+(global as any).__mockCookieSet = mockCookieSet;
+(global as any).__mockCookieGet = mockCookieGet;
+(global as any).__mockCookieDelete = mockCookieDelete;
