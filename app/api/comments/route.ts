@@ -8,6 +8,7 @@ import {
 } from '@/lib/db/comments';
 import { requireAuth } from '@/lib/auth/helper';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema
 const createCommentSchema = z.object({
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
       tree,
     });
   } catch (error) {
-    console.error('Get comments error:', error);
+    logger.error('Get comments error:', error);
 
     return NextResponse.json(
       { error: '댓글 목록을 가져오는 중 오류가 발생했습니다.' },
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
       message: '댓글이 작성되었습니다.',
     });
   } catch (error) {
-    console.error('Create comment error:', error);
+    logger.error('Create comment error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

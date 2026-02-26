@@ -8,6 +8,9 @@ const POSTGRES_URL = process.env.POSTGRES_URL;
 const isPostgres = POSTGRES_URL || DATABASE_URL?.startsWith('postgres');
 
 // Import appropriate schema
+// Note: Using dynamic require for schema to support both SQLite and PostgreSQL at runtime
+// TypeScript cannot represent a union of the two schema types as they have incompatible column types
+// Using 'any' for schema is intentional to allow runtime database switching
 let schema: any;
 if (isPostgres) {
   schema = require('./schema-pg');
@@ -16,6 +19,10 @@ if (isPostgres) {
 }
 
 // Create database connection
+// Note: Using 'any' here is intentional. Drizzle ORM's SQLite and PostgreSQL database types
+// are fundamentally incompatible (different method signatures for select/insert/update/delete).
+// A union type would prevent calling any methods on db. This is a known limitation when
+// supporting multiple database drivers in TypeScript.
 let db: any;
 
 if (isPostgres) {

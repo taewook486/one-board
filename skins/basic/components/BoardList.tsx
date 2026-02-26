@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { formatRelativeTime } from '@/lib/utils/common';
+import type { Board } from '@/lib/db';
 
 interface BoardListProps {
-  boards: any[];
+  boards: Board[];
   currentBoardKey?: string;
 }
 

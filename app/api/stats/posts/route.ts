@@ -4,6 +4,7 @@ import {
   getTrendingPosts,
   getCommentStats,
 } from '@/lib/db/stats';
+import logger from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
         });
     }
   } catch (error) {
-    console.error('Posts Stats API error:', error);
+    logger.error('Posts Stats API error:', error);
     return NextResponse.json(
       {
         success: false,

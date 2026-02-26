@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/index';
 import { notifications } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import logger from '@/lib/utils/logger';
+
+// Validation schema for path parameter
+const notificationIdSchema = z.object({
+  id: z.coerce.number().int().positive('유효하지 않은 알림 ID입니다.'),
+});
 
 export async function PUT(
   request: NextRequest,
@@ -9,14 +16,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const notificationId = parseInt(id);
 
-    if (isNaN(notificationId)) {
-      return NextResponse.json(
-        { error: '유효하지 않은 알림 ID입니다.' },
-        { status: 400 }
-      );
-    }
+    // Validate path parameter
+    const { id: notificationId } = notificationIdSchema.parse({ id });
 
     // Mark notification as read
     await db
@@ -28,7 +30,14 @@ export async function PUT(
       success: true,
     });
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0]?.message || '입력값이 올바르지 않습니다.' },
+        { status: 400 }
+      );
+    }
+
+    logger.error('Error marking notification as read', error);
     return NextResponse.json(
       { error: '알림 읽음 처리에 실패했습니다.' },
       { status: 500 }

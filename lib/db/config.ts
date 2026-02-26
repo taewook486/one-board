@@ -96,7 +96,7 @@ export function parseConfigValue(value: string, type: string): string | number |
 /**
  * Convert value to string based on type
  */
-export function stringifyConfigValue(value: any, type: string): string {
+export function stringifyConfigValue(value: string | number | boolean, type: string): string {
   switch (type) {
     case 'number':
       return String(value);

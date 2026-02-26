@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findAllSkins, countSkins } from '@/lib/db/skins';
+import logger from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       skins,
     });
   } catch (error) {
-    console.error('Error fetching skins:', error);
+    logger.error('Error fetching skins:', error);
     return NextResponse.json(
       {
         success: false,
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     }, { status: 501 });
     
   } catch (error) {
-    console.error('Error uploading skin:', error);
+    logger.error('Error uploading skin:', error);
     return NextResponse.json(
       { success: false, error: '스킨 업로드에 실패했습니다.' },
       { status: 500 }

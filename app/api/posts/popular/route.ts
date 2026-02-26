@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { boardPosts, PostStatus } from '@/lib/db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
+import logger from '@/lib/utils/logger';
 
 /**
  * GET /api/posts/popular - Get popular posts across all boards
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
       posts,
     });
   } catch (error) {
-    console.error('Get popular posts error:', error);
+    logger.error('Get popular posts error:', error);
     return NextResponse.json(
       { error: '인기 게시글을 가져오는 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import type { BoardPost } from '@/lib/db';
 
 // Dynamic import Editor
 const ClientEditor = dynamic(() => import('@/components/editor/Editor'), {
@@ -27,7 +28,7 @@ const postSchema = z.object({
 type PostFormData = z.infer<typeof postSchema>;
 
 interface PostWriteProps {
-  post?: any;
+  post?: BoardPost;
   boardKey: string;
   boardId: number;
   allowNotice?: boolean;

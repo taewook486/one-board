@@ -1,11 +1,16 @@
 import Link from 'next/link';
 import { formatRelativeTime } from '@/lib/utils/common';
+import type { BoardPost, PostComment } from '@/lib/db';
 
 interface PostViewProps {
-  post: any;
-  comments: any[];
+  post: BoardPost;
+  comments: PostComment[];
   boardKey: string;
   canEdit?: boolean;
+}
+
+interface CommentWithReplies extends PostComment {
+  replies?: CommentWithReplies[];
 }
 
 export default function PostView({ post, comments, boardKey, canEdit }: PostViewProps) {
@@ -79,7 +84,7 @@ export default function PostView({ post, comments, boardKey, canEdit }: PostView
           댓글 ({comments.length})
         </h2>
         <div className="space-y-4">
-          {comments.map((comment: any) => (
+          {comments.map((comment: CommentWithReplies) => (
             <Comment key={comment.id} comment={comment} boardKey={boardKey} />
           ))}
           {comments.length === 0 && (
@@ -91,7 +96,7 @@ export default function PostView({ post, comments, boardKey, canEdit }: PostView
   );
 }
 
-function Comment({ comment, boardKey }: { comment: any; boardKey: string }) {
+function Comment({ comment, boardKey }: { comment: CommentWithReplies; boardKey: string }) {
   return (
     <div className="border-b pb-4 last:border-0">
       <div className="flex items-start gap-3">
@@ -117,7 +122,7 @@ function Comment({ comment, boardKey }: { comment: any; boardKey: string }) {
 
       {comment.replies && comment.replies.length > 0 && (
         <div className="ml-12 mt-4 space-y-4">
-          {comment.replies.map((reply: any) => (
+          {comment.replies.map((reply: CommentWithReplies) => (
             <Comment key={reply.id} comment={reply} boardKey={boardKey} />
           ))}
         </div>

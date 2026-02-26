@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllMembers, countMembers, searchMembers } from '@/lib/db/members';
+import { z } from 'zod';
+import logger from '@/lib/utils/logger';
+
+// Validation schema for query parameters
+const getMembersSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.coerce.number().int().optional(),
+  search: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const status = searchParams.get('status');
-    const search = searchParams.get('search');
+    // Validate query parameters
+    const validatedData = getMembersSchema.parse({
+      page: searchParams.get('page') || '1',
+      limit: searchParams.get('limit') || '20',
+      status: searchParams.get('status') || undefined,
+      search: searchParams.get('search') || undefined,
+    });
 
+    const { page, limit, status, search } = validatedData;
     const offset = (page - 1) * limit;
 
     let members;
@@ -24,11 +38,11 @@ export async function GET(request: NextRequest) {
       members = await getAllMembers({
         limit,
         offset,
-        status: status ? parseInt(status) : undefined,
+        status,
       });
 
       total = await countMembers({
-        status: status ? parseInt(status) : undefined,
+        status,
       });
     }
 
@@ -43,7 +57,14 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching members:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: error.errors[0]?.message || '입력값이 올바르지 않습니다.' },
+        { status: 400 }
+      );
+    }
+
+    logger.error('Error fetching members:', error);
     return NextResponse.json(
       {
         success: false,

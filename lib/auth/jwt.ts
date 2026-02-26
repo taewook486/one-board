@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from 'jose';
+import logger from '@/lib/utils/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 const secretKey = new TextEncoder().encode(JWT_SECRET);
@@ -59,7 +60,7 @@ export async function verifySessionToken(token: string): Promise<SessionUser | n
       profileImage: payload.profileImage as string | null,
     };
   } catch (error) {
-    console.error('JWT verification error:', error);
+    logger.error('JWT verification error', error);
     return null;
   }
 }

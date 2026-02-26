@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createMember } from '@/lib/db/members';
 import { validateUsername, validateNickname } from '@/lib/utils/security';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema for registration
 const registerSchema = z.object({
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       message: '회원가입이 완료되었습니다.',
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

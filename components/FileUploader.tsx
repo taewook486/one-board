@@ -11,6 +11,11 @@ interface UploadedFile {
   type: string;
 }
 
+interface UploadResult {
+  name?: string;
+  url: string;
+}
+
 interface FileUploaderProps {
   accept?: string;
   multiple?: boolean;
@@ -114,8 +119,8 @@ export default function FileUploader({
       }
 
       // Add uploaded files to state
-      const newFiles: UploadedFile[] = data.results.map((result: any, index: number) => ({
-        id: Date.now() + index,
+      const newFiles: UploadedFile[] = data.results.map((result: UploadResult, index: number) => ({
+        id: String(Date.now() + index),
         name: result.name || files[index]?.name || '',
         url: result.url,
         size: files[index]?.size || 0,

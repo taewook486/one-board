@@ -3,6 +3,7 @@ import { verifyMemberPassword, updateLastLoginTime } from '@/lib/db/members';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { createSessionToken } from '@/lib/auth/jwt';
+import logger from '@/lib/utils/logger';
 
 // Validation schema for login
 const loginSchema = z.object({
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
       message: '로그인되었습니다.',
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

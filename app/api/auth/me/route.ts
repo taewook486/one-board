@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/auth/jwt';
+import logger from '@/lib/utils/logger';
 
 export interface SessionUser {
   id: number;
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       user: sessionUser,
     });
   } catch (error) {
-    console.error('Get me error:', error);
+    logger.error('Get me error:', error);
 
     return NextResponse.json(
       { error: '사용자 정보를 가져오는 중 오류가 발생했습니다.' },

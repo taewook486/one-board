@@ -12,6 +12,7 @@ import { boardPosts, boards } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { getAuthenticatedUser, requireAuth, requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema for admin actions only
 const adminActionSchema = z.object({
@@ -78,7 +79,7 @@ export async function GET(
       adjacentPosts,
     });
   } catch (error) {
-    console.error('Get post error:', error);
+    logger.error('Get post error:', error);
 
     return NextResponse.json(
       { error: '게시글을 가져오는 중 오류가 발생했습니다.' },
@@ -132,7 +133,7 @@ export async function PUT(
       message: '게시글이 수정되었습니다.',
     });
   } catch (error) {
-    console.error('Update post error:', error);
+    logger.error('Update post error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -194,7 +195,7 @@ export async function DELETE(
       message: '게시글이 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('Delete post error:', error);
+    logger.error('Delete post error:', error);
 
     if (error instanceof Error) {
       const statusCode = error.message === '인증이 필요합니다.' ? 401 : 400;
@@ -352,7 +353,7 @@ export async function PATCH(
         );
     }
   } catch (error) {
-    console.error('Admin action error:', error);
+    logger.error('Admin action error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

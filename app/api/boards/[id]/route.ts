@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { findBoardById, updateBoard, deleteBoard, updateBoardOrder } from '@/lib/db/boards';
 import { requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema
 const updateBoardSchema = z.object({
@@ -47,7 +48,7 @@ export async function GET(
       board,
     });
   } catch (error) {
-    console.error('Get board error:', error);
+    logger.error('Get board error:', error);
 
     return NextResponse.json(
       { error: '게시판을 가져오는 중 오류가 발생했습니다.' },
@@ -84,7 +85,7 @@ export async function PUT(
       message: '게시판이 수정되었습니다.',
     });
   } catch (error) {
-    console.error('Update board error:', error);
+    logger.error('Update board error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -128,7 +129,7 @@ export async function DELETE(
       message: '게시판이 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('Delete board error:', error);
+    logger.error('Delete board error:', error);
 
     if (error instanceof Error) {
       return NextResponse.json(

@@ -9,6 +9,7 @@ import {
 import { PostStatus } from '@/lib/db/schema';
 import { requireAuth, requireAdmin } from '@/lib/auth/helper';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema
 const createPostSchema = z.object({
@@ -151,7 +152,7 @@ export async function GET(request: NextRequest) {
       boardId: parseInt(boardId),
     });
   } catch (error) {
-    console.error('Get posts error:', error);
+    logger.error('Get posts error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -194,7 +195,7 @@ export async function POST(request: NextRequest) {
       message: '게시글이 작성되었습니다.',
     });
   } catch (error) {
-    console.error('Create post error:', error);
+    logger.error('Create post error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

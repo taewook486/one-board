@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getBoardStats,
 } from '@/lib/db/stats';
+import logger from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
       boards,
     });
   } catch (error) {
-    console.error('Boards Stats API error:', error);
+    logger.error('Boards Stats API error:', error);
     return NextResponse.json(
       {
         success: false,

@@ -4,6 +4,7 @@ import { postFiles, type PostFile, type NewPostFile } from './index';
 import { z } from 'zod';
 import path from 'path';
 import fs from 'fs';
+import logger from '@/lib/utils/logger';
 
 // Validation schemas
 export const createFileSchema = z.object({
@@ -311,7 +312,7 @@ export async function cleanupTempFiles(
       await deleteFile(file.id);
       deletedCount++;
     } catch (error) {
-      console.error(`Failed to delete temp file ${file.id}:`, error);
+      logger.error(`Failed to delete temp file ${file.id}`, error);
     }
   }
 

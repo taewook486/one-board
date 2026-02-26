@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findMemberByEmail, setEmailVerificationToken } from '@/lib/db/members';
+import { z } from 'zod';
 import crypto from 'crypto';
+import logger from '@/lib/utils/logger';
+
+// Validation schema for forgot password
+const forgotPasswordSchema = z.object({
+  email: z.string().email('유효한 이메일을 입력해주세요.'),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
 
-    // Validate email
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: '이메일을 입력해주세요.' },
-        { status: 400 }
-      );
-    }
+    // Validate input
+    const validatedData = forgotPasswordSchema.parse(body);
+    const { email } = validatedData;
 
     // Find member by email
     const member = await findMemberByEmail(email);
@@ -34,8 +37,8 @@ export async function POST(request: NextRequest) {
 
     // In production, send email here
     // For now, log the token (in production, this would be sent via email)
-    console.log('Password reset token:', resetToken);
-    console.log('Reset link:', `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`);
+    logger.info('Password reset token generated', { token: resetToken });
+    logger.info('Reset link generated', { url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}` });
 
     return NextResponse.json({
       success: true,
@@ -44,7 +47,14 @@ export async function POST(request: NextRequest) {
       devResetToken: resetToken,
     });
   } catch (error) {
-    console.error('Error requesting password reset:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: error.errors[0]?.message || '입력값이 올바르지 않습니다.' },
+        { status: 400 }
+      );
+    }
+
+    logger.error('Error requesting password reset', error);
     return NextResponse.json(
       { success: false, error: '비밀번호 재설정 요청에 실패했습니다.' },
       { status: 500 }

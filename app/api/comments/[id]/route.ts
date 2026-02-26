@@ -9,6 +9,7 @@ import {
 } from '@/lib/db/comments';
 import { requireAuth } from '@/lib/auth/helper';
 import { z } from 'zod';
+import logger from '@/lib/utils/logger';
 
 // Validation schema
 const updateCommentSchema = z.object({
@@ -40,7 +41,7 @@ export async function GET(
       comment,
     });
   } catch (error) {
-    console.error('Get comment error:', error);
+    logger.error('Get comment error:', error);
 
     return NextResponse.json(
       { error: '댓글을 가져오는 중 오류가 발생했습니다.' },
@@ -95,7 +96,7 @@ export async function PUT(
       message: '댓글이 수정되었습니다.',
     });
   } catch (error) {
-    console.error('Update comment error:', error);
+    logger.error('Update comment error:', error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -148,7 +149,7 @@ export async function DELETE(
       message: '댓글이 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('Delete comment error:', error);
+    logger.error('Delete comment error:', error);
 
     if (error instanceof Error) {
       return NextResponse.json(
@@ -190,7 +191,7 @@ export async function POST(
       message: '좋아요가 추가되었습니다.',
     });
   } catch (error) {
-    console.error('Like comment error:', error);
+    logger.error('Like comment error:', error);
 
     return NextResponse.json(
       { error: '좋아요 처리 중 오류가 발생했습니다.' },

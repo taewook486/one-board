@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConfig, deleteConfig } from '@/lib/db/config';
+import logger from '@/lib/utils/logger';
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +24,7 @@ export async function GET(
       value,
     });
   } catch (error) {
-    console.error('Error fetching config:', error);
+    logger.error('Error fetching config:', error);
     return NextResponse.json(
       { success: false, error: '설정 정보를 불러오는데 실패했습니다.' },
       { status: 500 }
@@ -44,7 +45,7 @@ export async function DELETE(
       message: '설정이 삭제되었습니다.',
     });
   } catch (error) {
-    console.error('Error deleting config:', error);
+    logger.error('Error deleting config:', error);
     return NextResponse.json(
       { success: false, error: '설정 삭제에 실패했습니다.' },
       { status: 500 }

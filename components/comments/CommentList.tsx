@@ -12,10 +12,19 @@ interface Comment {
   replies?: Comment[];
 }
 
+// Simple session user interface - only includes fields needed for comment operations
+interface SessionUser {
+  id: number;
+  username: string;
+  nickname: string;
+  role: number;
+  profileImage?: string | null;
+}
+
 interface CommentListProps {
   comments: Comment[];
   postId: number;
-  sessionUser: any;
+  sessionUser: SessionUser | null;
   canEdit: boolean;
   canDelete: boolean;
 }
@@ -23,7 +32,7 @@ interface CommentListProps {
 interface CommentItemProps {
   comment: Comment;
   postId: number;
-  sessionUser: any;
+  sessionUser: SessionUser | null;
   canEdit: boolean;
   canDelete: boolean;
   level?: number;

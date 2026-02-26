@@ -1,6 +1,7 @@
 import { findBoardByKey } from '@/lib/db/boards';
 import { findSkinById } from '@/lib/db/skins';
 import { getDefaultSkin, generateCssVariables, type SkinConfig } from './index';
+import logger from '@/lib/utils/logger';
 
 export interface BoardSkinResult {
   skinConfig: SkinConfig;
@@ -44,7 +45,7 @@ export async function getBoardSkinWithStyles(boardKey: string): Promise<BoardSki
             scopePrefix: '--board-skin-'
           };
         } catch (error) {
-          console.error(`Failed to parse skin config for board ${boardKey}:`, error);
+          logger.error(`Failed to parse skin config for board ${boardKey}`, error);
           // Fall back to default skin
           const defaultSkin = getDefaultSkin();
           return {
@@ -67,7 +68,7 @@ export async function getBoardSkinWithStyles(boardKey: string): Promise<BoardSki
     };
 
   } catch (error) {
-    console.error(`Error loading skin for board ${boardKey}:`, error);
+    logger.error(`Error loading skin for board ${boardKey}`, error);
     const defaultSkin = getDefaultSkin();
     return {
       skinConfig: defaultSkin,

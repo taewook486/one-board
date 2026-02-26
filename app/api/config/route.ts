@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllConfigs, setConfig, bulkUpdateConfigs, resetConfigs, parseConfigValue } from '@/lib/db/config';
+import logger from '@/lib/utils/logger';
 
 // Default configs
 const DEFAULT_CONFIGS = {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
       configs: parsedConfigs,
     });
   } catch (error) {
-    console.error('Error fetching configs:', error);
+    logger.error('Error fetching configs:', error);
     return NextResponse.json(
       { success: false, error: '설정을 불러오는데 실패했습니다.' },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       message: '설정이 저장되었습니다.',
     });
   } catch (error) {
-    console.error('Error saving config:', error);
+    logger.error('Error saving config:', error);
     return NextResponse.json(
       { success: false, error: '설정 저장에 실패했습니다.' },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { incrementLikeCount } from '@/lib/db/posts';
+import logger from '@/lib/utils/logger';
 
 export async function POST(
   request: NextRequest,
@@ -25,7 +26,7 @@ export async function POST(
       message: '좋아요가 등록되었습니다.',
     });
   } catch (error) {
-    console.error('Error liking post:', error);
+    logger.error('Error liking post', error);
     return NextResponse.json(
       { success: false, error: '좋아요에 실패했습니다.' },
       { status: 500 }

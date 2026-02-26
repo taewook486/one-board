@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getActiveMembers,
 } from '@/lib/db/stats';
+import logger from '@/lib/utils/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       members,
     });
   } catch (error) {
-    console.error('Active Members API error:', error);
+    logger.error('Active Members API error', error);
     return NextResponse.json(
       {
         success: false,

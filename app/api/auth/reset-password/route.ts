@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { findMemberByEmail, updateMemberPassword } from '@/lib/db/members';
 import { z } from 'zod';
 import crypto from 'crypto';
+import logger from '@/lib/utils/logger';
 
 // Validation schema
 const resetPasswordSchema = z.object({
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Error resetting password:', error);
+    logger.error('Error resetting password:', error);
     return NextResponse.json(
       { success: false, error: '비밀번호 재설정에 실패했습니다.' },
       { status: 500 }

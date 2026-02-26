@@ -5,6 +5,7 @@ import { createFile } from '@/lib/db/files';
 import { validateFileType, validateFileSize, sanitizeFilename } from '@/lib/utils/security';
 import { config } from '@/lib/config';
 import type { NewPostFile } from '@/lib/db/schema';
+import logger from '@/lib/utils/logger';
 
 // Vercel Blob Storage (production)
 let put: any;
@@ -16,7 +17,7 @@ if (process.env.BLOB_READ_WRITE_TOKEN) {
     put = blob.put;
     blobAvailable = true;
   } catch (e) {
-    console.warn('Vercel Blob not available, using local filesystem');
+    logger.warn('Vercel Blob not available, using local filesystem');
   }
 }
 
@@ -202,7 +203,7 @@ export async function uploadFile(
       url,
     };
   } catch (error) {
-    console.error('File upload error:', error);
+    logger.error('File upload error', error);
     return {
       success: false,
       error: '파일 업로드 중 오류가 발생했습니다.',
@@ -272,14 +273,14 @@ export async function deleteFile(fileId: number): Promise<boolean> {
       try {
         await fs.unlink(fullPath);
       } catch (e) {
-        console.warn('Failed to delete file from filesystem:', e);
+        logger.warn('Failed to delete file from filesystem', { error: e });
       }
       if (file.thumbnailPath) {
         const thumbnailFullPath = path.join(process.cwd(), file.thumbnailPath);
         try {
           await fs.unlink(thumbnailFullPath);
         } catch (e) {
-          console.warn('Failed to delete thumbnail from filesystem:', e);
+          logger.warn('Failed to delete thumbnail from filesystem', { error: e });
         }
       }
     }
@@ -287,7 +288,7 @@ export async function deleteFile(fileId: number): Promise<boolean> {
     await deleteDbFile(fileId);
     return true;
   } catch (error) {
-    console.error('File delete error:', error);
+    logger.error('File delete error', error);
     return false;
   }
 }

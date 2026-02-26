@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, sql, count, desc } from 'drizzle-orm';
 import { db } from './index';
-import { members, boardPosts, postComments, memberSessions, boards } from './index';
+import { members, boardPosts, postComments, memberSessions, boards, type BoardPost } from './index';
 
 /**
  * Statistics Types
@@ -32,6 +32,33 @@ export interface BoardStats {
   boardId: number;
   boardName: string;
   postCount: number;
+}
+
+/**
+ * Internal types for database query results
+ */
+interface DateCountStat {
+  date: string;
+  count: number;
+}
+
+interface PostStatResult {
+  date: string;
+  count: number;
+  views: number;
+  likes: number;
+}
+
+interface BoardStatResult {
+  id: number;
+  name: string;
+  post_count: number;
+}
+
+interface ActiveMemberResult {
+  id: number;
+  nickname: string;
+  post_count: number;
 }
 
 /**
@@ -106,7 +133,7 @@ export async function getDailyStats(days: number = 30): Promise<DailyStats[]> {
   // Merge all stats
   const statsMap = new Map<string, DailyStats>();
 
-  visitorStats.forEach((stat: any) => {
+  visitorStats.forEach((stat: DateCountStat) => {
     const existing = statsMap.get(stat.date) || {
       date: stat.date,
       visitors: 0,
@@ -118,7 +145,7 @@ export async function getDailyStats(days: number = 30): Promise<DailyStats[]> {
     statsMap.set(stat.date, existing);
   });
 
-  postStats.forEach((stat: any) => {
+  postStats.forEach((stat: DateCountStat) => {
     const existing = statsMap.get(stat.date) || {
       date: stat.date,
       visitors: 0,
@@ -130,7 +157,7 @@ export async function getDailyStats(days: number = 30): Promise<DailyStats[]> {
     statsMap.set(stat.date, existing);
   });
 
-  commentStats.forEach((stat: any) => {
+  commentStats.forEach((stat: DateCountStat) => {
     const existing = statsMap.get(stat.date) || {
       date: stat.date,
       visitors: 0,
@@ -142,7 +169,7 @@ export async function getDailyStats(days: number = 30): Promise<DailyStats[]> {
     statsMap.set(stat.date, existing);
   });
 
-  registrationStats.forEach((stat: any) => {
+  registrationStats.forEach((stat: DateCountStat) => {
     const existing = statsMap.get(stat.date) || {
       date: stat.date,
       visitors: 0,
@@ -177,7 +204,7 @@ export async function getPostStats(days: number = 30): Promise<PostStats[]> {
     .groupBy(sql`DATE(created_at)`)
     .orderBy(sql`DATE(created_at)`);
 
-  return stats.map((stat: any) => ({
+  return stats.map((stat: PostStatResult) => ({
     date: stat.date,
     count: stat.count || 0,
     views: stat.views || 0,
@@ -203,7 +230,7 @@ export async function getCommentStats(days: number = 30): Promise<{ date: string
     .groupBy(sql`DATE(created_at)`)
     .orderBy(sql`DATE(created_at)`);
 
-  return stats.map((stat: any) => ({
+  return stats.map((stat: DateCountStat) => ({
     date: stat.date,
     count: stat.count || 0,
   }));
@@ -227,7 +254,7 @@ export async function getMemberRegistrations(days: number = 30): Promise<{ date:
     .groupBy(sql`DATE(created_at)`)
     .orderBy(sql`DATE(created_at)`);
 
-  return stats.map((stat: any) => ({
+  return stats.map((stat: DateCountStat) => ({
     date: stat.date,
     count: stat.count || 0,
   }));
@@ -248,7 +275,7 @@ export async function getBoardStats(): Promise<BoardStats[]> {
     .groupBy(boards.id)
     .orderBy(desc(sql`post_count`));
 
-  return boardsResult.map((board: any) => ({
+  return boardsResult.map((board: BoardStatResult) => ({
     boardId: board.id,
     boardName: board.name,
     postCount: board.post_count || 0,
@@ -285,7 +312,7 @@ export async function getTotalVisitors(): Promise<number> {
 /**
  * Get trending content (most viewed posts)
  */
-export async function getTrendingPosts(limit: number = 5): Promise<any[]> {
+export async function getTrendingPosts(limit: number = 5): Promise<BoardPost[]> {
   const posts = await db
     .select()
     .from(boardPosts)
@@ -298,7 +325,7 @@ export async function getTrendingPosts(limit: number = 5): Promise<any[]> {
 /**
  * Get most active members
  */
-export async function getActiveMembers(limit: number = 5): Promise<any[]> {
+export async function getActiveMembers(limit: number = 5): Promise<ActiveMemberResult[]> {
   const activeMembers = await db
     .select({
       id: members.id,
