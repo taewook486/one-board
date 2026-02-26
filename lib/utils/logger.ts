@@ -100,12 +100,14 @@ class Logger {
 
     const formattedMessage = this.formatMessage(entry);
 
-    // Use native console for output (but in a controlled manner)
+    // Use console for output (Edge Runtime compatible)
     // In production, this would be replaced with a proper logging service
     if (level === 'error') {
-      process.stderr.write(formattedMessage + '\n');
+      console.error(formattedMessage);
+    } else if (level === 'warn') {
+      console.warn(formattedMessage);
     } else {
-      process.stdout.write(formattedMessage + '\n');
+      console.log(formattedMessage);
     }
   }
 
